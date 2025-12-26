@@ -22,7 +22,10 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 비고 |
 |---------|----------|----------|------------|------|------|
-| - | - | - | - | - | 아직 등록된 명세 없음 |
+| [FEAT-001](./features/FEAT-001.md) | System Architecture | - | - | ⏳ 대기 | 프로젝트 구조 설정 필요 |
+| [FEAT-002](./features/FEAT-002.md) | Agent Execution Management | - | - | ⏳ 대기 | K8s Job 관리 기능 |
+| [FEAT-003](./features/FEAT-003.md) | Execution History Management | - | - | ⏳ 대기 | PostgreSQL 히스토리 저장 |
+| [FEAT-004](./features/FEAT-004.md) | Artifact Management | - | - | ⏳ 대기 | S3 아티팩트 관리 |
 
 ---
 
@@ -30,7 +33,11 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 비고 |
 |---------|----------|----------|------------|------|------|
-| - | - | - | - | - | 아직 등록된 명세 없음 |
+| [API-001](./api/API-001.md) | Create Execution | - | - | ⏳ 대기 | POST /api/v1/executions |
+| [API-002](./api/API-002.md) | Get Execution | - | - | ⏳ 대기 | GET /api/v1/executions/{id} |
+| [API-003](./api/API-003.md) | List Executions | - | - | ⏳ 대기 | GET /api/v1/executions |
+| [API-004](./api/API-004.md) | Cancel Execution | - | - | ⏳ 대기 | POST /api/v1/executions/{id}/cancel |
+| [API-005](./api/API-005.md) | Artifact Management APIs | - | - | ⏳ 대기 | 아티팩트 CRUD |
 
 ---
 
@@ -38,7 +45,33 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 비고 |
 |---------|----------|----------|------------|------|------|
-| - | - | - | - | - | 아직 등록된 명세 없음 |
+| [DATA-001](./data/DATA-001.md) | Database Schema & Data Models | - | - | ⏳ 대기 | Prisma Schema 정의 |
+
+---
+
+## 의존성 그래프
+
+```
+FEAT-001 (System Architecture)
+    │
+    ├──▶ FEAT-002 (Agent Execution)
+    │        │
+    │        ├──▶ FEAT-003 (History Management)
+    │        │        │
+    │        │        └──▶ API-003 (List Executions)
+    │        │
+    │        ├──▶ FEAT-004 (Artifact Management)
+    │        │        │
+    │        │        └──▶ API-005 (Artifact APIs)
+    │        │
+    │        ├──▶ API-001 (Create Execution)
+    │        ├──▶ API-002 (Get Execution)
+    │        └──▶ API-004 (Cancel Execution)
+    │
+    └──▶ DATA-001 (Database Schema)
+             │
+             └──▶ All API specs
+```
 
 ---
 
@@ -46,10 +79,30 @@
 
 | 카테고리 | 전체 | 완료 | 진행중 | 대기 | 완료율 |
 |---------|-----|-----|-------|-----|--------|
-| FEAT | 0 | 0 | 0 | 0 | - |
-| API | 0 | 0 | 0 | 0 | - |
-| DATA | 0 | 0 | 0 | 0 | - |
-| **총계** | **0** | **0** | **0** | **0** | **-** |
+| FEAT | 4 | 0 | 0 | 4 | 0% |
+| API | 5 | 0 | 0 | 5 | 0% |
+| DATA | 1 | 0 | 0 | 1 | 0% |
+| **총계** | **10** | **0** | **0** | **10** | **0%** |
+
+---
+
+## 구현 우선순위
+
+### Phase 1: Foundation
+1. FEAT-001: 모노레포 구조 설정
+2. DATA-001: 데이터베이스 스키마 생성
+
+### Phase 2: Core Features
+3. FEAT-002: Agent 실행 관리
+4. FEAT-003: 실행 히스토리 관리
+5. FEAT-004: 아티팩트 관리
+
+### Phase 3: API Implementation
+6. API-001: Create Execution
+7. API-002: Get Execution
+8. API-003: List Executions
+9. API-004: Cancel Execution
+10. API-005: Artifact APIs
 
 ---
 
@@ -57,4 +110,7 @@
 
 | 날짜 | Spec ID | 변경 내용 | 작성자 |
 |-----|---------|----------|-------|
-| - | - | 초기 생성 | - |
+| 2025-12-26 | - | 초기 생성 | System |
+| 2025-12-26 | FEAT-001~004 | 기능 명세 추가 | System |
+| 2025-12-26 | API-001~005 | API 명세 추가 | System |
+| 2025-12-26 | DATA-001 | 데이터 모델 명세 추가 | System |
