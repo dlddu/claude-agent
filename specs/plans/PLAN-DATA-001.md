@@ -60,10 +60,67 @@ DATA-001 명세에 따라 Prisma ORM 기반 데이터베이스 스키마와 Type
 - [x] CI 통과
 
 ## 검증 방법
-- [x] `pnpm build` 성공
-- [x] TypeScript 타입 에러 없음
-- [x] shared 패키지 타입이 backend에서 import 가능
-- [x] CI 통과 확인
+
+### 1. 빌드 검증
+
+| 검증 항목 | 명령어 | 성공 기준 | 상태 |
+|----------|--------|----------|------|
+| 의존성 설치 | `pnpm install` | exit code 0, 에러 없음 | ✅ |
+| 전체 빌드 | `pnpm build` | 3개 패키지 모두 성공 | ✅ |
+| shared 빌드 | `pnpm --filter @claude-agent/shared build` | dist/ 폴더 생성 | ✅ |
+| backend 빌드 | `pnpm --filter @claude-agent/backend build` | dist/ 폴더 생성 | ✅ |
+
+### 2. 타입 검증
+
+| 검증 항목 | 검증 방법 | 성공 기준 | 상태 |
+|----------|----------|----------|------|
+| Prisma 스키마 문법 | `prisma validate` | 문법 에러 없음 | ✅ |
+| TypeScript 컴파일 | `tsc --noEmit` | 타입 에러 0개 | ✅ |
+| shared → backend import | backend에서 shared 타입 사용 | 컴파일 성공 | ✅ |
+| shared → frontend import | frontend에서 shared 타입 사용 | 컴파일 성공 | ✅ |
+
+### 3. 스키마 일관성 검증
+
+| 검증 항목 | 검증 방법 | 성공 기준 | 상태 |
+|----------|----------|----------|------|
+| Prisma ↔ TypeScript 일치 | 수동 비교 | 모든 필드 타입 일치 | ✅ |
+| Enum 값 일치 | `ExecutionStatus` 비교 | 5개 상태 동일 | ✅ |
+| 필수/옵션 필드 일치 | `?` 마커 비교 | 일치 | ✅ |
+
+**검증 체크리스트:**
+```
+Prisma Execution.status  ↔  TypeScript ExecutionStatus     ✅
+Prisma Artifact.type     ↔  TypeScript ArtifactType        ✅
+Prisma Artifact.status   ↔  TypeScript ArtifactStatus      ✅
+```
+
+### 4. CI/CD 검증
+
+| 검증 항목 | 검증 방법 | 성공 기준 | 상태 |
+|----------|----------|----------|------|
+| GitHub Actions 실행 | `gh run list --limit 1` | status: completed | ✅ |
+| CI 워크플로우 통과 | `gh run view <id>` | conclusion: success | ✅ |
+| 빌드 아티팩트 생성 | CI 로그 확인 | 3 packages built | ✅ |
+
+### 5. 파일 존재 검증
+
+```bash
+# 필수 파일 존재 확인
+[ -f packages/backend/prisma/schema.prisma ]     # ✅
+[ -f packages/backend/.env.example ]              # ✅
+[ -f packages/shared/src/types/execution.ts ]     # ✅
+[ -f packages/shared/src/types/artifact.ts ]      # ✅
+[ -f packages/backend/src/dto/index.ts ]          # ✅
+```
+
+### 6. 검증 실패 시 대응
+
+| 실패 유형 | 원인 분석 | 대응 방법 |
+|----------|----------|----------|
+| 빌드 실패 | 의존성 문제 | `pnpm install --force` 후 재빌드 |
+| 타입 에러 | 스키마 불일치 | Prisma ↔ TypeScript 타입 동기화 |
+| CI 실패 | 환경 차이 | 로컬 node 버전 확인 (>=18) |
+| Import 에러 | 경로 문제 | tsconfig paths 설정 확인 |
 
 ## 의존성
 - 선행 조건: FEAT-001 (모노레포 구조)
