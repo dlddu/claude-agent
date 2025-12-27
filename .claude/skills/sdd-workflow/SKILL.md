@@ -18,6 +18,39 @@ description: >
 
 ---
 
+## 환경 요구사항
+
+이 워크플로우는 **사용자 개입 없이** 자동으로 실행됩니다.
+
+### GitHub CLI (gh) 자동 설정
+
+CI 상태 확인을 위해 GitHub CLI가 필요합니다. 스크립트가 자동으로 처리합니다:
+
+1. **자동 설치**: `gh` 명령어가 없으면 자동으로 설치
+   - Linux: apt, yum, pacman 또는 바이너리 직접 설치
+   - macOS: brew 또는 바이너리 직접 설치
+
+2. **자동 인증**: 다음 환경변수 중 하나를 사용
+   - `GITHUB_TOKEN`: GitHub Personal Access Token
+   - `GH_TOKEN`: gh CLI 기본 환경변수
+
+### 필수 환경변수
+
+```bash
+# 다음 중 하나 설정 (repo, workflow 권한 필요)
+export GITHUB_TOKEN="ghp_xxxxxxxxxxxx"
+# 또는
+export GH_TOKEN="ghp_xxxxxxxxxxxx"
+```
+
+### 권한 요구사항
+
+토큰에 필요한 권한:
+- `repo`: 저장소 접근
+- `workflow`: 워크플로우 실행 조회
+
+---
+
 ## Phase 1: 분석 (Analyze)
 
 ### 1.1 추적성 매트릭스 분석
@@ -112,20 +145,31 @@ git push -u origin <current-branch>
 
 ### 4.3 CI 상태 확인
 
-Push 후 GitHub Actions CI 완료를 대기합니다:
+Push 후 GitHub Actions CI 완료를 자동으로 대기합니다.
+
+**자동화 스크립트 사용:**
+
+```bash
+# 스크립트가 gh CLI 설치/인증/모니터링을 모두 처리
+.claude/skills/sdd-workflow/scripts/check-ci.sh
+```
+
+**스크립트 동작:**
+1. gh CLI 설치 확인 (없으면 자동 설치)
+2. GITHUB_TOKEN/GH_TOKEN으로 자동 인증
+3. Push 후 10초 대기 (워크플로우 시작 대기)
+4. 30초 간격으로 상태 확인 (최대 10분)
+5. 완료 시 결과 반환
+
+**수동 확인 (필요시):**
 
 ```bash
 # CI 실행 상태 확인
 gh run list --limit 1
 
-# CI 완료 대기 (최대 10분)
+# CI 완료 대기
 gh run watch
 ```
-
-**CI 확인 주기:**
-1. Push 직후 30초 대기 (워크플로우 시작 대기)
-2. `gh run watch`로 실시간 모니터링
-3. 완료 시 결과 확인
 
 ---
 
@@ -201,3 +245,4 @@ gh run view <run-id> --log-failed
 - 계획서 템플릿: `.claude/skills/sdd-workflow/plan-template.md`
 - 추적성 매트릭스: `specs/TRACEABILITY.md`
 - CI 워크플로우: `.github/workflows/ci.yml`
+- CI 상태 확인 스크립트: `.claude/skills/sdd-workflow/scripts/check-ci.sh`

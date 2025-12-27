@@ -6,7 +6,6 @@ set -e
 
 MAX_WAIT_TIME=600  # 최대 10분 대기
 CHECK_INTERVAL=30  # 30초 간격으로 확인
-MAX_RETRIES=3
 
 # 색상 정의
 RED='\033[0;31m'
@@ -26,22 +25,122 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# GitHub CLI 확인
-check_gh_cli() {
-    if ! command -v gh &> /dev/null; then
-        log_error "GitHub CLI (gh) is not installed"
-        exit 1
+# gh CLI 설치 (없는 경우)
+install_gh_cli() {
+    if command -v gh &> /dev/null; then
+        log_info "GitHub CLI already installed: $(gh --version | head -1)"
+        return 0
     fi
 
-    if ! gh auth status &> /dev/null; then
-        log_error "GitHub CLI is not authenticated. Run 'gh auth login'"
+    log_info "Installing GitHub CLI..."
+
+    # OS 감지
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Linux
+        if command -v apt-get &> /dev/null; then
+            # Debian/Ubuntu
+            (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) \
+                && sudo mkdir -p -m 755 /etc/apt/keyrings \
+                && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+                && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+                && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+                && sudo apt update \
+                && sudo apt install gh -y
+        elif command -v yum &> /dev/null; then
+            # RHEL/CentOS/Fedora
+            sudo dnf install 'dnf-command(config-manager)' -y 2>/dev/null || true
+            sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo -y 2>/dev/null || \
+                sudo yum-config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+            sudo dnf install gh -y 2>/dev/null || sudo yum install gh -y
+        elif command -v pacman &> /dev/null; then
+            # Arch Linux
+            sudo pacman -S github-cli --noconfirm
+        else
+            # Fallback: 바이너리 직접 다운로드
+            install_gh_binary
+        fi
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        if command -v brew &> /dev/null; then
+            brew install gh
+        else
+            install_gh_binary
+        fi
+    else
+        install_gh_binary
+    fi
+
+    if command -v gh &> /dev/null; then
+        log_info "GitHub CLI installed successfully: $(gh --version | head -1)"
+    else
+        log_error "Failed to install GitHub CLI"
+        exit 1
+    fi
+}
+
+# gh 바이너리 직접 설치
+install_gh_binary() {
+    log_info "Installing gh CLI from binary..."
+
+    local VERSION="2.63.2"
+    local ARCH=$(uname -m)
+    local OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+
+    case "$ARCH" in
+        x86_64) ARCH="amd64" ;;
+        aarch64|arm64) ARCH="arm64" ;;
+        *) log_error "Unsupported architecture: $ARCH"; exit 1 ;;
+    esac
+
+    local URL="https://github.com/cli/cli/releases/download/v${VERSION}/gh_${VERSION}_${OS}_${ARCH}.tar.gz"
+    local TMP_DIR=$(mktemp -d)
+
+    curl -sL "$URL" | tar xz -C "$TMP_DIR"
+    sudo mv "$TMP_DIR/gh_${VERSION}_${OS}_${ARCH}/bin/gh" /usr/local/bin/
+    rm -rf "$TMP_DIR"
+}
+
+# gh CLI 인증 설정
+setup_gh_auth() {
+    # 이미 인증되어 있는지 확인
+    if gh auth status &> /dev/null; then
+        log_info "GitHub CLI already authenticated"
+        return 0
+    fi
+
+    # GITHUB_TOKEN 환경변수 확인
+    if [ -n "$GITHUB_TOKEN" ]; then
+        log_info "Authenticating with GITHUB_TOKEN..."
+        echo "$GITHUB_TOKEN" | gh auth login --with-token
+        return 0
+    fi
+
+    # GH_TOKEN 환경변수 확인 (gh CLI 기본 환경변수)
+    if [ -n "$GH_TOKEN" ]; then
+        log_info "Using GH_TOKEN for authentication"
+        return 0
+    fi
+
+    log_error "No authentication token found. Set GITHUB_TOKEN or GH_TOKEN environment variable."
+    exit 1
+}
+
+# 저장소 정보 가져오기
+get_repo_info() {
+    local remote_url=$(git remote get-url origin 2>/dev/null)
+
+    if [[ "$remote_url" =~ github\.com[:/]([^/]+)/([^/.]+) ]]; then
+        echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+    else
+        log_error "Could not determine GitHub repository from remote URL: $remote_url"
         exit 1
     fi
 }
 
 # 최신 워크플로우 실행 가져오기
 get_latest_run() {
-    gh run list --limit 1 --json databaseId,status,conclusion,headBranch,displayTitle \
+    local branch=$(git branch --show-current)
+    gh run list --branch "$branch" --limit 1 --json databaseId,status,conclusion,headBranch,displayTitle \
         --jq '.[0]'
 }
 
@@ -81,13 +180,27 @@ show_failure_logs() {
 
 # 메인 실행
 main() {
-    check_gh_cli
+    # gh CLI 설치 및 인증
+    install_gh_cli
+    setup_gh_auth
 
     # 잠시 대기 (워크플로우 시작 대기)
     log_info "Waiting for workflow to start..."
     sleep 10
 
     local run_info=$(get_latest_run)
+
+    if [ -z "$run_info" ] || [ "$run_info" = "null" ]; then
+        log_warn "No workflow run found. Waiting longer..."
+        sleep 20
+        run_info=$(get_latest_run)
+    fi
+
+    if [ -z "$run_info" ] || [ "$run_info" = "null" ]; then
+        log_error "No workflow run found for current branch"
+        exit 1
+    fi
+
     local run_id=$(echo "$run_info" | jq -r '.databaseId')
     local title=$(echo "$run_info" | jq -r '.displayTitle')
     local branch=$(echo "$run_info" | jq -r '.headBranch')
