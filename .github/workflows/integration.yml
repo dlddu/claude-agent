@@ -3,6 +3,8 @@
 name: Integration
 
 on:
+  push:
+    branches: [main, 'claude/**']
   pull_request:
     branches: [main]
   workflow_dispatch:

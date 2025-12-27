@@ -1,9 +1,12 @@
 /**
  * Root Layout
  * @spec FEAT-001
+ * @spec UI-004
  */
 
 import type { Metadata } from 'next';
+import { Providers } from '@/components/Providers';
+import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: 'Claude Agent Service',
@@ -16,8 +19,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
