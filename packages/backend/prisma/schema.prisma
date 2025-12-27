@@ -1,0 +1,141 @@
+// Prisma Schema for Claude Agent Service
+// @spec DATA-001
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ArtifactStatus {
+  UPLOADING
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum ArtifactType {
+  CODE
+  DOCUMENT
+  IMAGE
+  DATA
+  LOG
+  OTHER
+}
+
+// ============================================
+// Models
+// ============================================
+
+/// 실행 기록
+model Execution {
+  id          String   @id @default(uuid()) @db.Uuid
+
+  // Request
+  prompt      String   @db.Text
+  model       String   @default("claude-sonnet-4-20250514") @db.VarChar(100)
+  maxTokens   Int      @default(4096) @map("max_tokens")
+  metadata    Json?    @db.JsonB
+
+  // Execution Info
+  status      ExecutionStatus @default(PENDING)
+  jobName     String   @map("job_name") @db.VarChar(255)
+  podName     String?  @map("pod_name") @db.VarChar(255)
+
+  // Timestamps
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  startedAt   DateTime? @map("started_at") @db.Timestamptz
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Result
+  output       String?  @db.Text
+  tokensUsed   Int?     @map("tokens_used")
+  inputTokens  Int?     @map("input_tokens")
+  outputTokens Int?     @map("output_tokens")
+
+  // Error
+  errorCode    String?  @map("error_code") @db.VarChar(100)
+  errorMessage String?  @map("error_message") @db.Text
+  errorDetails Json?    @map("error_details") @db.JsonB
+
+  // Cost
+  estimatedCost Decimal? @map("estimated_cost") @db.Decimal(10, 6)
+
+  // Retention
+  retainUntil  DateTime? @map("retain_until") @db.Timestamptz
+  isPermanent  Boolean   @default(false) @map("is_permanent")
+
+  // Relations
+  statusTransitions StatusTransition[]
+  artifacts         Artifact[]
+
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@index([jobName])
+  @@map("executions")
+}
+
+/// 상태 전환 이력
+model StatusTransition {
+  id             String    @id @default(uuid()) @db.Uuid
+  executionId    String    @map("execution_id") @db.Uuid
+  fromStatus     ExecutionStatus? @map("from_status")
+  toStatus       ExecutionStatus  @map("to_status")
+  transitionedAt DateTime  @default(now()) @map("transitioned_at") @db.Timestamptz
+  reason         String?   @db.Text
+
+  // Relations
+  execution      Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@index([executionId])
+  @@map("status_transitions")
+}
+
+/// 아티팩트
+model Artifact {
+  id          String   @id @default(uuid()) @db.Uuid
+  executionId String   @map("execution_id") @db.Uuid
+
+  // File Info
+  fileName    String   @map("file_name") @db.VarChar(255)
+  filePath    String   @map("file_path") @db.VarChar(1024)
+  fileSize    BigInt   @map("file_size")
+  mimeType    String?  @map("mime_type") @db.VarChar(100)
+  checksum    String?  @db.VarChar(64)
+
+  // Classification
+  type        ArtifactType @default(OTHER)
+  status      ArtifactStatus @default(ACTIVE)
+
+  // Timestamps
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz
+  archivedAt  DateTime? @map("archived_at") @db.Timestamptz
+
+  // Metadata
+  tags        Json?    @db.JsonB
+
+  // Relations
+  execution   Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@index([executionId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("artifacts")
+}

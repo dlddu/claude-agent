@@ -45,7 +45,7 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 비고 |
 |---------|----------|----------|------------|------|------|
-| [DATA-001](./data/DATA-001.md) | Database Schema & Data Models | - | - | ⏳ 대기 | Prisma Schema 정의 |
+| [DATA-001](./data/DATA-001.md) | Database Schema & Data Models | packages/backend/prisma/schema.prisma, packages/shared/src/types/*.ts, packages/backend/src/dto/*.ts | - | ✅ 완료 | Prisma Schema, TypeScript 타입, DTO 구현 완료 |
 
 ---
 
@@ -89,9 +89,9 @@ FEAT-001 (System Architecture)
 |---------|-----|-----|-------|-----|--------|
 | FEAT | 4 | 1 | 0 | 3 | 25% |
 | API | 5 | 0 | 0 | 5 | 0% |
-| DATA | 1 | 0 | 0 | 1 | 0% |
+| DATA | 1 | 1 | 0 | 0 | 100% |
 | INFRA | 1 | 0 | 1 | 0 | 0% |
-| **총계** | **11** | **1** | **1** | **9** | **9%** |
+| **총계** | **11** | **2** | **1** | **8** | **18%** |
 
 ---
 
@@ -126,3 +126,4 @@ FEAT-001 (System Architecture)
 | 2025-12-27 | INFRA-001 | GitHub Actions CI/CD 전략 명세 추가 | Claude |
 | 2025-12-27 | FEAT-001 | 모노레포 구조 구현 (pnpm workspace, shared, backend, frontend) | Claude |
 | 2025-12-27 | INFRA-001 | 기본 CI 워크플로우 추가 | Claude |
+| 2025-12-27 | DATA-001 | Prisma Schema, TypeScript 타입, DTO 구현 완료 | Claude |

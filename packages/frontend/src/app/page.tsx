@@ -3,7 +3,7 @@
  * @spec FEAT-001
  */
 
-import { ExecutionStatus } from '@claude-agent/shared';
+import { EXECUTION_STATUSES } from '@claude-agent/shared';
 
 export default function Home() {
   return (
@@ -13,7 +13,7 @@ export default function Home() {
       <section style={{ marginTop: '2rem' }}>
         <h2>Execution Status Types</h2>
         <ul>
-          {Object.values(ExecutionStatus).map((status) => (
+          {EXECUTION_STATUSES.map((status) => (
             <li key={status}>{status}</li>
           ))}
         </ul>
