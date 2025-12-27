@@ -37,7 +37,14 @@ get_repo_info() {
     # git remote에서 추출 시도
     local remote_url=$(git remote get-url origin 2>/dev/null)
 
+    # github.com URL 패턴 (SSH 또는 HTTPS)
     if [[ "$remote_url" =~ github\.com[:/]([^/]+)/([^/.]+) ]]; then
+        echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+        return 0
+    fi
+
+    # 프록시 URL 패턴 (예: http://proxy@127.0.0.1:port/git/owner/repo)
+    if [[ "$remote_url" =~ /git/([^/]+)/([^/.]+) ]]; then
         echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
         return 0
     fi
