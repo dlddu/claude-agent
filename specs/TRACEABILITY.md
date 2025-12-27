@@ -204,3 +204,4 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 | 2025-12-27 | - | 기능별 통합 추적 섹션 추가, 구현 우선순위 재구성 | Claude |
 | 2025-12-27 | UI-004 | 공통 레이아웃 및 인증 UI 구현 완료 (Tailwind CSS, 레이아웃 컴포넌트, 인증 컴포넌트, Toast, 다크모드) | Claude |
 | 2025-12-27 | UI-004 | 프론트엔드 테스트 추가 (Jest, React Testing Library, UI/Auth 컴포넌트 테스트) | Claude |
+| 2025-12-27 | UI-004, INFRA-001 | E2E 테스트 추가 (Playwright, 로그인/네비게이션/UI 컴포넌트 테스트) | Claude |
