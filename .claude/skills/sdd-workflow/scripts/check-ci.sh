@@ -130,6 +130,61 @@ get_latest_run_api() {
         | jq -r '.workflow_runs[0] | {id: .id, status: .status, conclusion: .conclusion, name: .name}'
 }
 
+# 워크플로우 jobs 및 steps 조회
+show_workflow_jobs() {
+    local repo=$1
+    local run_id=$2
+    local token="${GITHUB_TOKEN:-$GH_TOKEN}"
+
+    log_info "Fetching workflow jobs and steps..."
+
+    local jobs_response=$(curl -s -H "Authorization: token $token" \
+        -H "Accept: application/vnd.github.v3+json" \
+        "https://api.github.com/repos/${repo}/actions/runs/${run_id}/jobs")
+
+    local job_count=$(echo "$jobs_response" | jq -r '.total_count')
+    log_info "Total jobs: $job_count"
+    echo "" >&2
+
+    echo "$jobs_response" | jq -r '.jobs[] | @base64' | while read -r job_b64; do
+        local job=$(echo "$job_b64" | base64 -d)
+        local job_name=$(echo "$job" | jq -r '.name')
+        local job_status=$(echo "$job" | jq -r '.status')
+        local job_conclusion=$(echo "$job" | jq -r '.conclusion')
+
+        # Job 상태에 따른 아이콘
+        local job_icon="⏳"
+        case "$job_conclusion" in
+            "success") job_icon="✅" ;;
+            "failure") job_icon="❌" ;;
+            "skipped") job_icon="⏭️" ;;
+            "cancelled") job_icon="🚫" ;;
+        esac
+
+        echo -e "${YELLOW}━━━ Job: $job_name [$job_icon $job_conclusion] ━━━${NC}" >&2
+
+        # Steps 출력
+        echo "$job" | jq -r '.steps[] | @base64' | while read -r step_b64; do
+            local step=$(echo "$step_b64" | base64 -d)
+            local step_name=$(echo "$step" | jq -r '.name')
+            local step_status=$(echo "$step" | jq -r '.status')
+            local step_conclusion=$(echo "$step" | jq -r '.conclusion')
+
+            # Step 상태에 따른 아이콘
+            local step_icon="⏳"
+            case "$step_conclusion" in
+                "success") step_icon="✅" ;;
+                "failure") step_icon="❌" ;;
+                "skipped") step_icon="⏭️" ;;
+                "cancelled") step_icon="🚫" ;;
+            esac
+
+            echo -e "  $step_icon $step_name" >&2
+        done
+        echo "" >&2
+    done
+}
+
 # 워크플로우 완료 대기 (API 사용)
 wait_for_completion_api() {
     local repo=$1
@@ -219,8 +274,9 @@ main() {
             ;;
         "failure")
             log_error "Workflow failed!"
-            # API로 실패 로그 조회
-            log_error "Check workflow logs at: https://github.com/$repo/actions/runs/$run_id"
+            echo "" >&2
+            show_workflow_jobs "$repo" "$run_id"
+            log_error "Full logs: https://github.com/$repo/actions/runs/$run_id"
             exit 1
             ;;
         "timeout")
