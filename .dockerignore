@@ -1,0 +1,39 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+.next
+.turbo
+
+# Development files
+*.md
+*.log
+.git
+.gitignore
+.env*
+!.env.example
+
+# IDE
+.vscode
+.idea
+
+# Test files
+coverage
+**/*.test.ts
+**/*.spec.ts
+__tests__
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# CI/CD
+.github
+.claude
+
+# Misc
+*.local
+.DS_Store
