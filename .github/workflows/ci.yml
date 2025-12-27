@@ -1,5 +1,6 @@
 # Core CI Pipeline
 # @spec INFRA-001
+# @spec DATA-001
 name: CI
 
 on:
@@ -42,3 +43,65 @@ jobs:
       - name: Lint (if configured)
         run: pnpm lint || echo "Lint not fully configured yet"
         continue-on-error: true
+
+  prisma:
+    name: Prisma Schema Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: claude
+          POSTGRES_PASSWORD: claude123
+          POSTGRES_DB: claude_agent
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        working-directory: packages/backend
+        env:
+          DATABASE_URL: postgresql://claude:claude123@localhost:5432/claude_agent?schema=public
+        run: pnpm prisma:generate
+
+      - name: Validate Prisma Schema
+        working-directory: packages/backend
+        env:
+          DATABASE_URL: postgresql://claude:claude123@localhost:5432/claude_agent?schema=public
+        run: npx prisma validate
+
+      - name: Push Schema to Database
+        working-directory: packages/backend
+        env:
+          DATABASE_URL: postgresql://claude:claude123@localhost:5432/claude_agent?schema=public
+        run: pnpm db:push
+
+      - name: Verify Database Tables
+        env:
+          PGPASSWORD: claude123
+        run: |
+          psql -h localhost -U claude -d claude_agent -c "\dt" | grep -E "executions|artifacts|status_transitions"
