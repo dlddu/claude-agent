@@ -34,7 +34,7 @@ COPY --from=deps /app/packages/backend/node_modules ./packages/backend/node_modu
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 
 # Copy source code
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json ./
 COPY packages/shared ./packages/shared
 COPY packages/backend ./packages/backend
 
