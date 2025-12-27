@@ -26,7 +26,7 @@
 | Spec | Type | 구현 파일 | 테스트 파일 | 상태 |
 |------|------|----------|------------|------|
 | [FEAT-001](./features/FEAT-001.md) | Backend | packages/*, package.json, turbo.json | - | ✅ 완료 |
-| [UI-004](./ui/UI-004.md) | Frontend | packages/frontend/src/components/*, packages/frontend/src/contexts/*, packages/frontend/src/hooks/*, packages/frontend/src/lib/*, packages/frontend/src/app/* | - | ✅ 완료 |
+| [UI-004](./ui/UI-004.md) | Frontend | packages/frontend/src/components/*, packages/frontend/src/contexts/*, packages/frontend/src/hooks/*, packages/frontend/src/lib/*, packages/frontend/src/app/* | packages/frontend/src/__tests__/* | ✅ 완료 |
 | [DATA-001](./data/DATA-001.md) | Database | packages/backend/prisma/schema.prisma, packages/shared/src/types/*.ts | - | ✅ 완료 |
 | [INFRA-001](./infra/INFRA-001.md) | Infra | .github/workflows/*.yml, packages/*/Dockerfile | e2e/tests/*.spec.ts | ✅ 완료 |
 
@@ -75,7 +75,7 @@
 | [UI-001](./ui/UI-001.md) | Execution Management UI | - | - | ⏳ 대기 | FEAT-002, API-001/002/004 |
 | [UI-002](./ui/UI-002.md) | History & Statistics UI | - | - | ⏳ 대기 | FEAT-003, API-003 |
 | [UI-003](./ui/UI-003.md) | Artifact Management UI | - | - | ⏳ 대기 | FEAT-004, API-005 |
-| [UI-004](./ui/UI-004.md) | Common Layout & Auth UI | packages/frontend/src/components/layout/*, packages/frontend/src/components/auth/*, packages/frontend/src/components/ui/*, packages/frontend/src/components/feedback/*, packages/frontend/src/contexts/*, packages/frontend/src/hooks/*, packages/frontend/src/lib/*, packages/frontend/src/app/login/*, packages/frontend/src/app/dashboard/*, packages/frontend/src/app/settings/* | - | ✅ 완료 | FEAT-001 |
+| [UI-004](./ui/UI-004.md) | Common Layout & Auth UI | packages/frontend/src/components/layout/*, packages/frontend/src/components/auth/*, packages/frontend/src/components/ui/*, packages/frontend/src/components/feedback/*, packages/frontend/src/contexts/*, packages/frontend/src/hooks/*, packages/frontend/src/lib/*, packages/frontend/src/app/login/*, packages/frontend/src/app/dashboard/*, packages/frontend/src/app/settings/* | packages/frontend/src/__tests__/* | ✅ 완료 | FEAT-001 |
 
 ---
 
@@ -203,3 +203,4 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 | 2025-12-27 | UI-001~004 | 프론트엔드 UI 명세 추가 (기능별 Backend-Frontend 연결) | Claude |
 | 2025-12-27 | - | 기능별 통합 추적 섹션 추가, 구현 우선순위 재구성 | Claude |
 | 2025-12-27 | UI-004 | 공통 레이아웃 및 인증 UI 구현 완료 (Tailwind CSS, 레이아웃 컴포넌트, 인증 컴포넌트, Toast, 다크모드) | Claude |
+| 2025-12-27 | UI-004 | 프론트엔드 테스트 추가 (Jest, React Testing Library, UI/Auth 컴포넌트 테스트) | Claude |
