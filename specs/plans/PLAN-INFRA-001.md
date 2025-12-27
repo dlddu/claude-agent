@@ -53,8 +53,30 @@ INFRA-001 명세에 따라 GitHub Actions CI/CD 파이프라인을 구현합니�
 ## 롤백 계획
 기존 ci.yml을 git revert로 복원
 
+### 4단계: Docker 워크플로우 (docker.yml)
+- [x] docker.yml 워크플로우 생성
+- [x] Backend Dockerfile (멀티 스테이지)
+- [x] Frontend Dockerfile (멀티 스테이지)
+- [x] .dockerignore 설정
+- [x] Trivy 보안 스캔 통합
+
+**생성 파일:**
+- `.github/workflows/docker.yml`
+- `packages/backend/Dockerfile`
+- `packages/frontend/Dockerfile`
+- `.dockerignore`
+
+### 5단계: E2E 테스트 인프라
+- [x] Playwright 패키지 설정 (e2e/)
+- [x] 기본 E2E 테스트 작성
+- [x] integration.yml에 E2E job 구현
+
+**생성 파일:**
+- `e2e/package.json`
+- `e2e/playwright.config.ts`
+- `e2e/tests/health.spec.ts`
+
 ## 범위 제외 (추후 구현)
-- docker.yml: 프로덕션 준비 시 구현
 - release.yml: 첫 릴리즈 시 구현
 - REQ-5 Quality Gates: 테스트 코드 작성 후 구현
 
@@ -64,3 +86,5 @@ INFRA-001 명세에 따라 GitHub Actions CI/CD 파이프라인을 구현합니�
 - [x] 1단계: CI 워크플로우 강화
 - [x] 2단계: Integration 워크플로우 추가
 - [x] 3단계: 추적성 매트릭스 업데이트
+- [x] 4단계: Docker 워크플로우
+- [x] 5단계: E2E 테스트 인프라

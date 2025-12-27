@@ -59,10 +59,10 @@ Claude Agent Service 프로젝트의 GitHub Actions 기반 CI/CD 파이프라인
 - [x] E2E 테스트 실행 (선택적)
 
 ### REQ-3: Docker Build (docker.yml)
-- [ ] 멀티 스테이지 빌드
-- [ ] 빌드 캐시 활용 (GitHub Actions Cache)
-- [ ] 보안 스캔 (Trivy)
-- [ ] 이미지 태깅 전략 (semver, sha, latest)
+- [x] 멀티 스테이지 빌드
+- [x] 빌드 캐시 활용 (GitHub Actions Cache)
+- [x] 보안 스캔 (Trivy)
+- [x] 이미지 태깅 전략 (semver, sha, latest)
 
 ### REQ-4: Release Pipeline (release.yml)
 - [ ] 시맨틱 버저닝
@@ -399,3 +399,4 @@ jobs:
 |------|--------|-------------|
 | 2025-12-27 | Claude | Initial creation |
 | 2025-12-27 | Claude | REQ-1, REQ-2 구현 완료 (ci.yml 강화, integration.yml 생성) |
+| 2025-12-27 | Claude | REQ-3 구현 완료 (docker.yml, Dockerfile, E2E 테스트 인프라) |

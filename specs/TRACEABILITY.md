@@ -53,7 +53,7 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 비고 |
 |---------|----------|----------|------------|------|------|
-| [INFRA-001](./infra/INFRA-001.md) | GitHub Actions CI/CD Strategy | .github/workflows/ci.yml, .github/workflows/integration.yml | - | ✅ 완료 | Core CI + Integration 워크플로우 구현 완료 |
+| [INFRA-001](./infra/INFRA-001.md) | GitHub Actions CI/CD Strategy | .github/workflows/*.yml, packages/*/Dockerfile, e2e/* | e2e/tests/*.spec.ts | ✅ 완료 | CI, Integration, Docker, E2E 구현 완료 |
 
 ---
 
@@ -128,3 +128,4 @@ FEAT-001 (System Architecture)
 | 2025-12-27 | INFRA-001 | 기본 CI 워크플로우 추가 | Claude |
 | 2025-12-27 | DATA-001 | Prisma Schema, TypeScript 타입, DTO 구현 완료 | Claude |
 | 2025-12-27 | INFRA-001 | CI 워크플로우 강화 (detect-changes, lint, typecheck, unit-test, build), Integration 워크플로우 추가 | Claude |
+| 2025-12-27 | INFRA-001 | Docker 워크플로우, Dockerfile, E2E 테스트 인프라 구현 | Claude |
