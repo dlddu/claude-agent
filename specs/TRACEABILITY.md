@@ -53,7 +53,7 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 비고 |
 |---------|----------|----------|------------|------|------|
-| [INFRA-001](./infra/INFRA-001.md) | GitHub Actions CI/CD Strategy | .github/workflows/ci.yml | - | 🧪 테스트중 | 기본 CI 구현 완료 |
+| [INFRA-001](./infra/INFRA-001.md) | GitHub Actions CI/CD Strategy | .github/workflows/*.yml | - | ⏳ 대기 | CI/CD 파이프라인 |
 
 ---
 
@@ -85,13 +85,13 @@ FEAT-001 (System Architecture)
 
 ## 통계 요약
 
-| 카테고리 | 전체 | 완료 | 테스트중 | 진행중 | 대기 | 완료율 |
-|---------|-----|-----|---------|-------|-----|--------|
-| FEAT | 4 | 0 | 0 | 0 | 4 | 0% |
-| API | 5 | 0 | 0 | 0 | 5 | 0% |
-| DATA | 1 | 0 | 0 | 0 | 1 | 0% |
-| INFRA | 1 | 0 | 1 | 0 | 0 | 0% |
-| **총계** | **11** | **0** | **1** | **0** | **10** | **0%** |
+| 카테고리 | 전체 | 완료 | 진행중 | 대기 | 완료율 |
+|---------|-----|-----|-------|-----|--------|
+| FEAT | 4 | 0 | 0 | 4 | 0% |
+| API | 5 | 0 | 0 | 5 | 0% |
+| DATA | 1 | 0 | 0 | 1 | 0% |
+| INFRA | 1 | 0 | 0 | 1 | 0% |
+| **총계** | **11** | **0** | **0** | **11** | **0%** |
 
 ---
 
@@ -124,5 +124,3 @@ FEAT-001 (System Architecture)
 | 2025-12-26 | API-001~005 | API 명세 추가 | System |
 | 2025-12-26 | DATA-001 | 데이터 모델 명세 추가 | System |
 | 2025-12-27 | INFRA-001 | GitHub Actions CI/CD 전략 명세 추가 | Claude |
-| 2025-12-27 | INFRA-001 | 기본 CI 워크플로우 구현 (.github/workflows/ci.yml) | Claude |
-| 2025-12-27 | - | SDD 워크플로우 Claude Skill 추가 (.claude/skills/sdd-workflow/) | Claude |
