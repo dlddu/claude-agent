@@ -22,7 +22,7 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 비고 |
 |---------|----------|----------|------------|------|------|
-| [FEAT-001](./features/FEAT-001.md) | System Architecture | - | - | ⏳ 대기 | 프로젝트 구조 설정 필요 |
+| [FEAT-001](./features/FEAT-001.md) | System Architecture | packages/*, package.json, turbo.json | - | ✅ 완료 | 모노레포 구조 구현 및 빌드 검증 완료 |
 | [FEAT-002](./features/FEAT-002.md) | Agent Execution Management | - | - | ⏳ 대기 | K8s Job 관리 기능 |
 | [FEAT-003](./features/FEAT-003.md) | Execution History Management | - | - | ⏳ 대기 | PostgreSQL 히스토리 저장 |
 | [FEAT-004](./features/FEAT-004.md) | Artifact Management | - | - | ⏳ 대기 | S3 아티팩트 관리 |
@@ -87,11 +87,11 @@ FEAT-001 (System Architecture)
 
 | 카테고리 | 전체 | 완료 | 진행중 | 대기 | 완료율 |
 |---------|-----|-----|-------|-----|--------|
-| FEAT | 4 | 0 | 0 | 4 | 0% |
+| FEAT | 4 | 1 | 0 | 3 | 25% |
 | API | 5 | 0 | 0 | 5 | 0% |
 | DATA | 1 | 0 | 0 | 1 | 0% |
 | INFRA | 1 | 0 | 0 | 1 | 0% |
-| **총계** | **11** | **0** | **0** | **11** | **0%** |
+| **총계** | **11** | **1** | **0** | **10** | **9%** |
 
 ---
 
@@ -124,3 +124,4 @@ FEAT-001 (System Architecture)
 | 2025-12-26 | API-001~005 | API 명세 추가 | System |
 | 2025-12-26 | DATA-001 | 데이터 모델 명세 추가 | System |
 | 2025-12-27 | INFRA-001 | GitHub Actions CI/CD 전략 명세 추가 | Claude |
+| 2025-12-27 | FEAT-001 | 모노레포 구조 구현 (pnpm workspace, shared, backend, frontend) | Claude |
