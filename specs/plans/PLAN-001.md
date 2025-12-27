@@ -77,7 +77,7 @@ Frontend(Next.js), Backend(NestJS), Shared 패키지를 구성합니다.
 - [x] `pnpm install` 성공
 - [x] `pnpm build` 성공
 - [x] shared 패키지가 backend, frontend에서 import 가능
-- [ ] CI 통과 확인
+- [x] CI 통과 확인
 
 ## 의존성
 - 선행 조건: 없음 (Root specification)
