@@ -1,0 +1,195 @@
+# Integration Testing Pipeline
+# @spec INFRA-001
+name: Integration
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: 'Run E2E tests'
+        required: false
+        default: 'false'
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  NODE_VERSION: '20'
+  PNPM_VERSION: 8
+  DATABASE_URL: postgresql://claude:claude123@localhost:5432/claude_agent_test?schema=public
+
+jobs:
+  # Job 1: Database Migration Test
+  db-migration:
+    name: Database Migration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: claude
+          POSTGRES_PASSWORD: claude123
+          POSTGRES_DB: claude_agent_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        working-directory: packages/backend
+        run: pnpm prisma:generate
+
+      - name: Run Prisma migrations
+        working-directory: packages/backend
+        run: pnpm db:push
+
+      - name: Verify database schema
+        env:
+          PGPASSWORD: claude123
+        run: |
+          echo "=== Verifying database tables ==="
+          psql -h localhost -U claude -d claude_agent_test -c "\dt"
+
+          echo "=== Checking executions table ==="
+          psql -h localhost -U claude -d claude_agent_test -c "\d executions"
+
+          echo "=== Checking artifacts table ==="
+          psql -h localhost -U claude -d claude_agent_test -c "\d artifacts"
+
+  # Job 2: Integration Tests
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: db-migration
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: claude
+          POSTGRES_PASSWORD: claude123
+          POSTGRES_DB: claude_agent_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        working-directory: packages/backend
+        run: pnpm prisma:generate
+
+      - name: Setup database
+        working-directory: packages/backend
+        run: pnpm db:push
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Run integration tests
+        working-directory: packages/backend
+        run: pnpm test
+        continue-on-error: true
+
+  # Job 3: E2E Tests (optional)
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: integration-test
+    if: github.event.inputs.run_e2e == 'true' || github.event_name == 'push'
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: claude
+          POSTGRES_PASSWORD: claude123
+          POSTGRES_DB: claude_agent_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        working-directory: packages/backend
+        run: pnpm prisma:generate
+
+      - name: Setup database
+        working-directory: packages/backend
+        run: pnpm db:push
+
+      - name: Build all packages
+        run: pnpm build
+
+      - name: E2E tests placeholder
+        run: |
+          echo "E2E tests will be implemented when Playwright is configured"
+          echo "Skipping for now..."

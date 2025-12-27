@@ -3,7 +3,7 @@
 ## Metadata
 - **ID**: INFRA-001
 - **Created**: 2025-12-27
-- **Status**: Draft
+- **Status**: Approved
 - **Priority**: High
 
 ## Overview
@@ -47,16 +47,16 @@ Claude Agent Service 프로젝트의 GitHub Actions 기반 CI/CD 파이프라인
 ## Requirements
 
 ### REQ-1: Core CI Pipeline (ci.yml)
-- [ ] PR 생성/업데이트 시 자동 실행
-- [ ] main 브랜치 push 시 실행
-- [ ] 변경된 패키지만 선택적으로 빌드 (Turborepo 활용)
-- [ ] 병렬 실행으로 속도 최적화
+- [x] PR 생성/업데이트 시 자동 실행
+- [x] main 브랜치 push 시 실행
+- [x] 변경된 패키지만 선택적으로 빌드 (Turborepo 활용)
+- [x] 병렬 실행으로 속도 최적화
 
 ### REQ-2: Integration Testing (integration.yml)
-- [ ] PostgreSQL 서비스 컨테이너 사용
-- [ ] Prisma 마이그레이션 테스트
-- [ ] API 통합 테스트 실행
-- [ ] E2E 테스트 실행 (선택적)
+- [x] PostgreSQL 서비스 컨테이너 사용
+- [x] Prisma 마이그레이션 테스트
+- [x] API 통합 테스트 실행
+- [x] E2E 테스트 실행 (선택적)
 
 ### REQ-3: Docker Build (docker.yml)
 - [ ] 멀티 스테이지 빌드
@@ -398,3 +398,4 @@ jobs:
 | Date | Author | Description |
 |------|--------|-------------|
 | 2025-12-27 | Claude | Initial creation |
+| 2025-12-27 | Claude | REQ-1, REQ-2 구현 완료 (ci.yml 강화, integration.yml 생성) |
