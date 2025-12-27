@@ -14,36 +14,36 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+    echo -e "${GREEN}[INFO]${NC} $1" >&2
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    echo -e "${YELLOW}[WARN]${NC} $1" >&2
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# GitHub 호스트인지 확인
-is_github_host() {
-    local remote_url=$(git remote get-url origin 2>/dev/null)
-    if [[ "$remote_url" =~ github\.com ]]; then
-        return 0
-    else
-        return 1
-    fi
+    echo -e "${RED}[ERROR]${NC} $1" >&2
 }
 
 # 저장소 정보 가져오기 (owner/repo)
+# 우선순위: GITHUB_REPOSITORY 환경변수 > git remote URL
 get_repo_info() {
+    # 환경변수가 설정되어 있으면 사용
+    if [ -n "$GITHUB_REPOSITORY" ]; then
+        echo "$GITHUB_REPOSITORY"
+        return 0
+    fi
+
+    # git remote에서 추출 시도
     local remote_url=$(git remote get-url origin 2>/dev/null)
 
     if [[ "$remote_url" =~ github\.com[:/]([^/]+)/([^/.]+) ]]; then
         echo "${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
-    else
-        echo ""
+        return 0
     fi
+
+    echo ""
+    return 1
 }
 
 # gh CLI 설치 (없는 경우)
@@ -130,39 +130,6 @@ get_latest_run_api() {
         | jq -r '.workflow_runs[0] | {id: .id, status: .status, conclusion: .conclusion, name: .name}'
 }
 
-# gh CLI로 최신 워크플로우 실행 가져오기
-get_latest_run_gh() {
-    local branch=$(git branch --show-current)
-    gh run list --branch "$branch" --limit 1 --json databaseId,status,conclusion,headBranch,displayTitle \
-        --jq '.[0]'
-}
-
-# 워크플로우 완료 대기 (gh CLI 사용)
-wait_for_completion_gh() {
-    local run_id=$1
-    local elapsed=0
-
-    log_info "Waiting for workflow run #$run_id to complete..."
-
-    while [ $elapsed -lt $MAX_WAIT_TIME ]; do
-        local status=$(gh run view "$run_id" --json status --jq '.status')
-
-        if [ "$status" = "completed" ]; then
-            local conclusion=$(gh run view "$run_id" --json conclusion --jq '.conclusion')
-            echo "$conclusion"
-            return 0
-        fi
-
-        log_info "Status: $status (elapsed: ${elapsed}s)"
-        sleep $CHECK_INTERVAL
-        elapsed=$((elapsed + CHECK_INTERVAL))
-    done
-
-    log_error "Timeout waiting for workflow completion"
-    echo "timeout"
-    return 1
-}
-
 # 워크플로우 완료 대기 (API 사용)
 wait_for_completion_api() {
     local repo=$1
@@ -195,40 +162,18 @@ wait_for_completion_api() {
     return 1
 }
 
-# 실패 로그 출력
-show_failure_logs() {
-    local run_id=$1
-    log_error "Workflow failed. Showing failed job logs:"
-    gh run view "$run_id" --log-failed 2>/dev/null || \
-        gh run view "$run_id" --log 2>/dev/null | tail -100
-}
+# 메인 실행
+main() {
+    log_info "Checking CI status..."
 
-# 테스트 환경 시뮬레이션
-run_test_environment() {
-    log_warn "Non-GitHub environment detected. Running in test/simulation mode."
-
-    local remote_url=$(git remote get-url origin 2>/dev/null)
-    log_info "Remote URL: $remote_url"
-
-    # 테스트 환경에서는 성공으로 처리
-    log_info "Test environment: Simulating CI check..."
-    sleep 2
-
-    log_info "Test environment: CI simulation completed successfully!"
-    log_info "In production (GitHub), this script will:"
-    log_info "  1. Install gh CLI if needed"
-    log_info "  2. Authenticate with GITHUB_TOKEN"
-    log_info "  3. Monitor workflow runs"
-    log_info "  4. Wait for completion"
-    log_info "  5. Report results"
-
-    exit 0
-}
-
-# GitHub 환경에서 실행
-run_github_environment() {
     local repo=$(get_repo_info)
     local branch=$(git branch --show-current)
+
+    if [ -z "$repo" ]; then
+        log_error "Could not determine GitHub repository."
+        log_error "Set GITHUB_REPOSITORY environment variable (e.g., owner/repo)"
+        exit 1
+    fi
 
     log_info "GitHub repository: $repo"
     log_info "Branch: $branch"
@@ -237,30 +182,35 @@ run_github_environment() {
     install_gh_cli
     setup_gh_auth
 
+    # gh CLI에 저장소 설정
+    export GH_REPO="$repo"
+
     # 잠시 대기 (워크플로우 시작 대기)
     log_info "Waiting for workflow to start..."
     sleep 10
 
-    local run_info=$(get_latest_run_gh)
+    local run_info=$(get_latest_run_api "$repo" "$branch")
 
-    if [ -z "$run_info" ] || [ "$run_info" = "null" ]; then
+    if [ -z "$run_info" ] || [ "$run_info" = "null" ] || [ "$(echo "$run_info" | jq -r '.id')" = "null" ]; then
         log_warn "No workflow run found. Waiting longer..."
         sleep 20
-        run_info=$(get_latest_run_gh)
+        run_info=$(get_latest_run_api "$repo" "$branch")
     fi
 
-    if [ -z "$run_info" ] || [ "$run_info" = "null" ]; then
-        log_error "No workflow run found for current branch"
+    if [ -z "$run_info" ] || [ "$run_info" = "null" ] || [ "$(echo "$run_info" | jq -r '.id')" = "null" ]; then
+        log_error "No workflow run found for branch: $branch"
         exit 1
     fi
 
-    local run_id=$(echo "$run_info" | jq -r '.databaseId')
-    local title=$(echo "$run_info" | jq -r '.displayTitle')
+    local run_id=$(echo "$run_info" | jq -r '.id')
+    local run_name=$(echo "$run_info" | jq -r '.name')
+    local run_status=$(echo "$run_info" | jq -r '.status')
 
     log_info "Found workflow run #$run_id"
-    log_info "Title: $title"
+    log_info "Name: $run_name"
+    log_info "Current status: $run_status"
 
-    local result=$(wait_for_completion_gh "$run_id")
+    local result=$(wait_for_completion_api "$repo" "$run_id")
 
     case "$result" in
         "success")
@@ -269,7 +219,8 @@ run_github_environment() {
             ;;
         "failure")
             log_error "Workflow failed!"
-            show_failure_logs "$run_id"
+            # API로 실패 로그 조회
+            log_error "Check workflow logs at: https://github.com/$repo/actions/runs/$run_id"
             exit 1
             ;;
         "timeout")
@@ -281,17 +232,6 @@ run_github_environment() {
             exit 3
             ;;
     esac
-}
-
-# 메인 실행
-main() {
-    log_info "Checking CI status..."
-
-    if is_github_host; then
-        run_github_environment
-    else
-        run_test_environment
-    fi
 }
 
 main "$@"
