@@ -18,11 +18,12 @@ env:
   IMAGE_PREFIX: ${{ github.repository }}
 
 jobs:
-  # Job 1: Build and push backend image
+  # Job 1: Build and push backend image (Multi-platform: amd64 + arm64)
+  # @spec INFRA-001 REQ-6
   build-backend:
     name: Build Backend
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: read
       packages: write
@@ -30,6 +31,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # REQ-6: QEMU for cross-platform build
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -54,11 +59,13 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=
 
+      # REQ-6: Multi-platform build (linux/amd64, linux/arm64)
       - name: Build and push backend
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./packages/backend/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -67,11 +74,12 @@ jobs:
           build-args: |
             NODE_ENV=production
 
-  # Job 2: Build and push frontend image
+  # Job 2: Build and push frontend image (Multi-platform: amd64 + arm64)
+  # @spec INFRA-001 REQ-6
   build-frontend:
     name: Build Frontend
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: read
       packages: write
@@ -79,6 +87,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # REQ-6: QEMU for cross-platform build
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -103,11 +115,13 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=
 
+      # REQ-6: Multi-platform build (linux/amd64, linux/arm64)
       - name: Build and push frontend
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./packages/frontend/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
