@@ -7,8 +7,8 @@
  * Pagination request parameters
  */
 export interface PaginationDto {
-  page?: number;       // default: 1
-  pageSize?: number;   // default: 20, max: 100
+  page?: number; // default: 1
+  pageSize?: number; // default: 20, max: 100
   sortBy?: 'createdAt' | 'completedAt' | 'status';
   sortOrder?: 'asc' | 'desc';
 }

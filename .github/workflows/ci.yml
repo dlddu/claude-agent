@@ -88,7 +88,6 @@ jobs:
 
       - name: Run lint
         run: pnpm lint
-        continue-on-error: true
 
   # Job 3: Type check
   typecheck:
@@ -175,9 +174,12 @@ jobs:
         working-directory: packages/backend
         run: pnpm prisma:generate
 
+      - name: Build shared package
+        working-directory: packages/shared
+        run: pnpm build
+
       - name: Run tests
-        run: pnpm test
-        continue-on-error: true
+        run: pnpm test --filter=!@claude-agent/e2e
 
   # Job 5: Build all packages
   build:
