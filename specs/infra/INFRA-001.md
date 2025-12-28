@@ -64,6 +64,12 @@ Claude Agent Service 프로젝트의 GitHub Actions 기반 CI/CD 파이프라인
 - [x] 보안 스캔 (Trivy)
 - [x] 이미지 태깅 전략 (semver, sha, latest)
 
+### REQ-6: Multi-Platform Docker Build (ARM64 Support)
+- [x] QEMU 에뮬레이션 설정 (docker/setup-qemu-action)
+- [x] Multi-platform 빌드 지원 (linux/amd64, linux/arm64)
+- [x] 플랫폼별 캐시 분리
+- [x] Buildx를 통한 크로스 플랫폼 빌드
+
 ### REQ-4: Release Pipeline (release.yml)
 - [ ] 시맨틱 버저닝
 - [ ] 자동 Changelog 생성
@@ -191,6 +197,48 @@ tags: |
 build-args: |
   NODE_ENV=production
   NEXT_TELEMETRY_DISABLED=1
+```
+
+**Multi-Platform Build Configuration:**
+```yaml
+# REQ-6: ARM64 Support
+platforms: |
+  linux/amd64
+  linux/arm64
+
+# QEMU Setup for cross-platform build
+- name: Set up QEMU
+  uses: docker/setup-qemu-action@v3
+
+# Buildx with multi-platform support
+- name: Set up Docker Buildx
+  uses: docker/setup-buildx-action@v3
+  with:
+    platforms: linux/amd64,linux/arm64
+
+# Platform-specific cache
+cache-from: type=gha,scope=${{ matrix.platform }}
+cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+```
+
+**Platform Build Matrix:**
+```yaml
+strategy:
+  matrix:
+    platform:
+      - linux/amd64
+      - linux/arm64
+```
+
+**Manifest Creation:**
+```yaml
+# Create multi-arch manifest after platform-specific builds
+- name: Create and push manifest
+  run: |
+    docker buildx imagetools create \
+      -t ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.package }}:${{ github.sha }} \
+      ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.package }}:${{ github.sha }}-amd64 \
+      ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.package }}:${{ github.sha }}-arm64
 ```
 
 ---
@@ -400,3 +448,5 @@ jobs:
 | 2025-12-27 | Claude | Initial creation |
 | 2025-12-27 | Claude | REQ-1, REQ-2 구현 완료 (ci.yml 강화, integration.yml 생성) |
 | 2025-12-27 | Claude | REQ-3 구현 완료 (docker.yml, Dockerfile, E2E 테스트 인프라) |
+| 2025-12-28 | Claude | REQ-6 추가: Multi-Platform Docker Build (ARM64 Support) 명세 |
+| 2025-12-28 | Claude | REQ-6 구현 완료: docker.yml에 QEMU, multi-platform 빌드 추가 |
