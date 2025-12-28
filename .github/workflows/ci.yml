@@ -88,7 +88,6 @@ jobs:
 
       - name: Run lint
         run: pnpm lint
-        continue-on-error: true
 
   # Job 3: Type check
   typecheck:
@@ -177,7 +176,6 @@ jobs:
 
       - name: Run tests
         run: pnpm test
-        continue-on-error: true
 
   # Job 5: Build all packages
   build:

@@ -138,7 +138,6 @@ jobs:
       - name: Run integration tests
         working-directory: packages/backend
         run: pnpm test
-        continue-on-error: true
 
   # Job 3: E2E Tests (optional)
   e2e-test:
@@ -217,7 +216,6 @@ jobs:
         env:
           BASE_URL: http://localhost:3000
           BACKEND_URL: http://localhost:3001
-        continue-on-error: true
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
