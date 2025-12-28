@@ -72,7 +72,7 @@ Claude Agent 실행 관리를 위한 백엔드 서비스 및 API 구현:
 - [x] pnpm build 성공
 - [x] pnpm test 통과
 - [x] pnpm lint 통과
-- [ ] CI 통과 확인
+- [x] CI 통과 확인 (Workflow #20554038766)
 
 ## 의존성
 - 선행 조건: FEAT-001 (모노레포 구조), DATA-001 (Prisma 스키마)
