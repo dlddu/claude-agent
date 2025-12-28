@@ -132,6 +132,7 @@ jobs:
             NEXT_TELEMETRY_DISABLED=1
 
   # Job 3: Security scan with Trivy
+  # @spec INFRA-001 REQ-3
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
@@ -140,40 +141,33 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      security-events: write
+      packages: read
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Get short SHA
+        id: sha
+        run: echo "short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run Trivy vulnerability scanner (backend)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:${{ github.sha }}
-          format: 'sarif'
-          output: 'trivy-backend-results.sarif'
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:${{ steps.sha.outputs.short }}
+          format: 'table'
           severity: 'CRITICAL,HIGH'
-        continue-on-error: true
 
       - name: Run Trivy vulnerability scanner (frontend)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend:${{ github.sha }}
-          format: 'sarif'
-          output: 'trivy-frontend-results.sarif'
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend:${{ steps.sha.outputs.short }}
+          format: 'table'
           severity: 'CRITICAL,HIGH'
-        continue-on-error: true
-
-      - name: Upload Trivy scan results (backend)
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-backend-results.sarif'
-          category: 'trivy-backend'
-        continue-on-error: true
-
-      - name: Upload Trivy scan results (frontend)
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-frontend-results.sarif'
-          category: 'trivy-frontend'
-        continue-on-error: true
