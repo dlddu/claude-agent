@@ -108,8 +108,9 @@ describe('K8sService', () => {
       };
 
       mockBatchApi.createNamespacedJob.mockResolvedValue({
+        response: {} as any,
         body: mockJobResponse,
-      } as k8s.HttpResponse<k8s.V1Job>);
+      });
 
       const result = await service.createJob(mockJobConfig);
 
@@ -137,8 +138,9 @@ describe('K8sService', () => {
       };
 
       mockBatchApi.createNamespacedJob.mockResolvedValue({
+        response: {} as any,
         body: {} as k8s.V1Job,
-      } as k8s.HttpResponse<k8s.V1Job>);
+      });
 
       await service.createJob(minimalConfig);
 
@@ -170,6 +172,7 @@ describe('K8sService', () => {
   describe('getJobStatus', () => {
     it('should return succeeded status when job succeeded', async () => {
       mockBatchApi.readNamespacedJob.mockResolvedValue({
+        response: {} as any,
         body: {
           metadata: { name: 'claude-agent-test-123' },
           status: {
@@ -180,7 +183,7 @@ describe('K8sService', () => {
             completionTime: new Date('2025-01-01T00:10:00Z'),
           },
         } as k8s.V1Job,
-      } as k8s.HttpResponse<k8s.V1Job>);
+      });
 
       const status = await service.getJobStatus('test-123');
 
@@ -196,6 +199,7 @@ describe('K8sService', () => {
 
     it('should return failed status when job failed', async () => {
       mockBatchApi.readNamespacedJob.mockResolvedValue({
+        response: {} as any,
         body: {
           metadata: { name: 'claude-agent-test-123' },
           status: {
@@ -204,7 +208,7 @@ describe('K8sService', () => {
             active: 0,
           },
         } as k8s.V1Job,
-      } as k8s.HttpResponse<k8s.V1Job>);
+      });
 
       const status = await service.getJobStatus('test-123');
 
@@ -213,6 +217,7 @@ describe('K8sService', () => {
 
     it('should return running status when job is active', async () => {
       mockBatchApi.readNamespacedJob.mockResolvedValue({
+        response: {} as any,
         body: {
           metadata: { name: 'claude-agent-test-123' },
           status: {
@@ -221,7 +226,7 @@ describe('K8sService', () => {
             active: 1,
           },
         } as k8s.V1Job,
-      } as k8s.HttpResponse<k8s.V1Job>);
+      });
 
       const status = await service.getJobStatus('test-123');
 
@@ -230,6 +235,7 @@ describe('K8sService', () => {
 
     it('should return pending status when job has no status', async () => {
       mockBatchApi.readNamespacedJob.mockResolvedValue({
+        response: {} as any,
         body: {
           metadata: { name: 'claude-agent-test-123' },
           status: {
@@ -238,7 +244,7 @@ describe('K8sService', () => {
             active: 0,
           },
         } as k8s.V1Job,
-      } as k8s.HttpResponse<k8s.V1Job>);
+      });
 
       const status = await service.getJobStatus('test-123');
 
@@ -261,8 +267,9 @@ describe('K8sService', () => {
   describe('deleteJob', () => {
     it('should delete job successfully', async () => {
       mockBatchApi.deleteNamespacedJob.mockResolvedValue({
+        response: {} as any,
         body: {},
-      } as k8s.HttpResponse<k8s.V1Status>);
+      });
 
       const result = await service.deleteJob('test-123');
 
@@ -294,6 +301,7 @@ describe('K8sService', () => {
   describe('getJobLogs', () => {
     it('should return logs from job pod', async () => {
       mockCoreApi.listNamespacedPod.mockResolvedValue({
+        response: {} as any,
         body: {
           items: [
             {
@@ -301,11 +309,12 @@ describe('K8sService', () => {
             },
           ],
         },
-      } as k8s.HttpResponse<k8s.V1PodList>);
+      });
 
       mockCoreApi.readNamespacedPodLog.mockResolvedValue({
+        response: {} as any,
         body: 'Log line 1\nLog line 2\n',
-      } as unknown as k8s.HttpResponse<string>);
+      });
 
       const logs = await service.getJobLogs('test-123');
 
@@ -314,8 +323,9 @@ describe('K8sService', () => {
 
     it('should return null when no pods found', async () => {
       mockCoreApi.listNamespacedPod.mockResolvedValue({
+        response: {} as any,
         body: { items: [] },
-      } as k8s.HttpResponse<k8s.V1PodList>);
+      });
 
       const logs = await service.getJobLogs('test-123');
 
@@ -326,6 +336,7 @@ describe('K8sService', () => {
   describe('listJobs', () => {
     it('should list all agent jobs with correct status', async () => {
       mockBatchApi.listNamespacedJob.mockResolvedValue({
+        response: {} as any,
         body: {
           items: [
             {
@@ -342,7 +353,7 @@ describe('K8sService', () => {
             },
           ],
         },
-      } as k8s.HttpResponse<k8s.V1JobList>);
+      });
 
       const jobs = await service.listJobs();
 

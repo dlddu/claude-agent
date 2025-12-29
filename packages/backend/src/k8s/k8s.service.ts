@@ -29,9 +29,9 @@ export interface JobStatus {
 @Injectable()
 export class K8sService implements OnModuleInit {
   private readonly logger = new Logger(K8sService.name);
-  private batchApi: k8s.BatchV1Api;
-  private coreApi: k8s.CoreV1Api;
-  private kubeConfig: k8s.KubeConfig;
+  private batchApi!: k8s.BatchV1Api;
+  private coreApi!: k8s.CoreV1Api;
+  private kubeConfig!: k8s.KubeConfig;
   private isConfigured = false;
 
   private readonly namespace = process.env.K8S_NAMESPACE || 'claude-agent';

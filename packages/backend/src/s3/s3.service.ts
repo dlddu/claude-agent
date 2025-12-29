@@ -38,7 +38,7 @@ export interface PresignedUrlOptions {
 @Injectable()
 export class S3Service implements OnModuleInit {
   private readonly logger = new Logger(S3Service.name);
-  private s3Client: S3Client;
+  private s3Client!: S3Client;
   private isConfigured = false;
 
   private readonly bucket: string;
