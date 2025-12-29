@@ -8,6 +8,13 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import * as bcrypt from 'bcrypt';
+
+// Mock bcrypt
+jest.mock('bcrypt', () => ({
+  compare: jest.fn(),
+  hash: jest.fn().mockImplementation((password) => Promise.resolve(`$2b$10$hashed_${password}`)),
+}));
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -33,6 +40,11 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+
+    // Default bcrypt.compare to return true for valid password
+    (bcrypt.compare as jest.Mock).mockImplementation((password: string) => {
+      return Promise.resolve(password === 'admin123');
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -132,6 +144,10 @@ describe('AuthService', () => {
 
   describe('refreshAccessToken', () => {
     it('should return new access token when refresh token is valid', async () => {
+      // Reset mocks to ensure clean state
+      mockJwtService.sign.mockReset();
+      mockJwtService.verify.mockReset();
+
       mockJwtService.verify.mockReturnValue({
         sub: 'admin-001',
         email: 'admin@example.com',

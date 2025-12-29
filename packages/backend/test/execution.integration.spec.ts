@@ -308,7 +308,7 @@ describe('Execution API (Integration)', () => {
       });
 
       const cancelTransition = execution?.statusTransitions.find(
-        (t) => t.toStatus === 'CANCELLED',
+        (t: { toStatus: string }) => t.toStatus === 'CANCELLED',
       );
       expect(cancelTransition?.reason).toBe('Custom cancellation reason');
     });
