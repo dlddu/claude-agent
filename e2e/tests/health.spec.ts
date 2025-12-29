@@ -25,6 +25,7 @@ test.describe('API Health', () => {
     expect(response.ok()).toBeTruthy();
 
     const body = await response.json();
-    expect(body).toHaveProperty('status');
+    expect(body.success).toBe(true);
+    expect(body.data).toHaveProperty('status');
   });
 });
