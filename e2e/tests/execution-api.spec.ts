@@ -12,17 +12,22 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 const API_BASE = `${BACKEND_URL}/api/v1`;
 
 test.describe('Execution API E2E', () => {
-  // Skip if backend is not available
-  test.beforeAll(async ({ request }) => {
+  // Helper to create execution and return ID
+  async function createExecution(
+    request: import('@playwright/test').APIRequestContext,
+    prompt: string = 'Test prompt',
+  ): Promise<string | null> {
     try {
-      const response = await request.get(`${BACKEND_URL}/health`);
-      if (!response.ok()) {
-        test.skip();
-      }
+      const response = await request.post(`${API_BASE}/executions`, {
+        data: { prompt },
+      });
+      if (!response.ok()) return null;
+      const body = await response.json();
+      return body.data?.id ?? null;
     } catch {
-      test.skip();
+      return null;
     }
-  });
+  }
 
   test.describe('POST /api/v1/executions', () => {
     test('should create a new execution', async ({ request }) => {
@@ -76,22 +81,9 @@ test.describe('Execution API E2E', () => {
   });
 
   test.describe('GET /api/v1/executions/:id', () => {
-    let executionId: string;
-
-    test.beforeAll(async ({ request }) => {
-      // Create an execution first
-      const createResponse = await request.post(`${API_BASE}/executions`, {
-        data: { prompt: 'Test for GET endpoint' },
-      });
-      const createBody = await createResponse.json();
-      executionId = createBody.data?.id;
-    });
-
     test('should retrieve execution by ID', async ({ request }) => {
-      if (!executionId) {
-        test.skip();
-        return;
-      }
+      const executionId = await createExecution(request, 'Test for GET endpoint');
+      expect(executionId).not.toBeNull();
 
       const response = await request.get(`${API_BASE}/executions/${executionId}`);
 
@@ -122,10 +114,8 @@ test.describe('Execution API E2E', () => {
     });
 
     test('should include artifacts when requested', async ({ request }) => {
-      if (!executionId) {
-        test.skip();
-        return;
-      }
+      const executionId = await createExecution(request, 'Test for artifacts');
+      expect(executionId).not.toBeNull();
 
       const response = await request.get(
         `${API_BASE}/executions/${executionId}?includeArtifacts=true`,
@@ -138,10 +128,8 @@ test.describe('Execution API E2E', () => {
     });
 
     test('should include status transitions when requested', async ({ request }) => {
-      if (!executionId) {
-        test.skip();
-        return;
-      }
+      const executionId = await createExecution(request, 'Test for transitions');
+      expect(executionId).not.toBeNull();
 
       const response = await request.get(
         `${API_BASE}/executions/${executionId}?includeTransitions=true`,
@@ -224,19 +212,9 @@ test.describe('Execution API E2E', () => {
 
   test.describe('POST /api/v1/executions/:id/cancel', () => {
     test('should cancel a PENDING execution', async ({ request }) => {
-      // Create a new execution
-      const createResponse = await request.post(`${API_BASE}/executions`, {
-        data: { prompt: 'Execution to be cancelled' },
-      });
-      const createBody = await createResponse.json();
-      const executionId = createBody.data?.id;
+      const executionId = await createExecution(request, 'Execution to be cancelled');
+      expect(executionId).not.toBeNull();
 
-      if (!executionId) {
-        test.skip();
-        return;
-      }
-
-      // Cancel it
       const cancelResponse = await request.post(
         `${API_BASE}/executions/${executionId}/cancel`,
         {
@@ -262,17 +240,8 @@ test.describe('Execution API E2E', () => {
     });
 
     test('should return 409 for already cancelled execution', async ({ request }) => {
-      // Create and cancel an execution
-      const createResponse = await request.post(`${API_BASE}/executions`, {
-        data: { prompt: 'Double cancel test' },
-      });
-      const createBody = await createResponse.json();
-      const executionId = createBody.data?.id;
-
-      if (!executionId) {
-        test.skip();
-        return;
-      }
+      const executionId = await createExecution(request, 'Double cancel test');
+      expect(executionId).not.toBeNull();
 
       // First cancel
       await request.post(`${API_BASE}/executions/${executionId}/cancel`);
@@ -290,21 +259,9 @@ test.describe('Execution API E2E', () => {
   });
 
   test.describe('GET /api/v1/executions/:id/logs', () => {
-    let executionId: string;
-
-    test.beforeAll(async ({ request }) => {
-      const createResponse = await request.post(`${API_BASE}/executions`, {
-        data: { prompt: 'Test for logs endpoint' },
-      });
-      const createBody = await createResponse.json();
-      executionId = createBody.data?.id;
-    });
-
     test('should return execution logs', async ({ request }) => {
-      if (!executionId) {
-        test.skip();
-        return;
-      }
+      const executionId = await createExecution(request, 'Test for logs endpoint');
+      expect(executionId).not.toBeNull();
 
       const response = await request.get(
         `${API_BASE}/executions/${executionId}/logs`,
@@ -328,9 +285,9 @@ test.describe('Execution API E2E', () => {
 });
 
 test.describe('Execution Workflow E2E', () => {
-  test.skip('full execution lifecycle', async ({ request }) => {
-    // This test demonstrates the full lifecycle but is skipped
-    // because actual execution would require K8s integration
+  // TODO: Enable when K8s integration is available in CI
+  test.fixme('full execution lifecycle', async ({ request }) => {
+    // This test requires actual K8s job execution to complete the lifecycle
 
     // 1. Create execution
     const createResponse = await request.post(`${API_BASE}/executions`, {

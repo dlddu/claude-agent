@@ -21,12 +21,10 @@ test.describe('API Health', () => {
   test('backend health endpoint should respond', async ({ request }) => {
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
 
-    try {
-      const response = await request.get(`${backendUrl}/health`);
-      expect(response.ok()).toBeTruthy();
-    } catch {
-      // Backend might not be running in all test scenarios
-      test.skip();
-    }
+    const response = await request.get(`${backendUrl}/health`);
+    expect(response.ok()).toBeTruthy();
+
+    const body = await response.json();
+    expect(body).toHaveProperty('status');
   });
 });
