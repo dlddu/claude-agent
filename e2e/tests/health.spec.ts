@@ -21,10 +21,8 @@ test.describe('API Health', () => {
   test('backend health endpoint should respond', async ({ request }) => {
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
 
-    const response = await request.get(`${backendUrl}/health`);
-
-    // Skip if backend is not running (e.g., frontend-only e2e test)
-    test.skip(!response.ok(), 'Backend not available - skipping API health check');
+    const response = await request.get(`${backendUrl}/api/v1/health`);
+    expect(response.ok()).toBeTruthy();
 
     const body = await response.json();
     expect(body).toHaveProperty('status');
