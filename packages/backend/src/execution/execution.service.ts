@@ -59,7 +59,7 @@ export class ExecutionService {
         prompt: dto.prompt,
         model: dto.model ?? DEFAULTS.model,
         maxTokens: dto.maxTokens ?? DEFAULTS.maxTokens,
-        metadata: dto.metadata ?? {},
+        metadata: (dto.metadata as object | undefined) ?? undefined,
         status: 'PENDING',
         jobName,
         isPermanent: false,
