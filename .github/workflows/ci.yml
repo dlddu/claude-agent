@@ -178,8 +178,13 @@ jobs:
         working-directory: packages/shared
         run: pnpm build
 
-      - name: Run tests
-        run: pnpm test --filter=!@claude-agent/e2e
+      - name: Run backend unit tests
+        working-directory: packages/backend
+        run: pnpm test:unit
+
+      - name: Run frontend tests
+        working-directory: packages/frontend
+        run: pnpm test
 
   # Job 5: Build all packages
   build:

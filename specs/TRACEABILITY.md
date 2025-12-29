@@ -33,11 +33,11 @@
 ### Feature Unit 2: Execution Management
 | Spec | Type | 구현 파일 | 테스트 파일 | 상태 |
 |------|------|----------|------------|------|
-| [FEAT-002](./features/FEAT-002.md) | Backend | - | - | ⏳ 대기 |
+| [FEAT-002](./features/FEAT-002.md) | Backend | packages/backend/src/execution/*.ts, packages/backend/src/prisma/*.ts | packages/backend/src/execution/execution.service.spec.ts, packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
 | [UI-001](./ui/UI-001.md) | Frontend | - | - | ⏳ 대기 |
-| [API-001](./api/API-001.md) | API | - | - | ⏳ 대기 |
-| [API-002](./api/API-002.md) | API | - | - | ⏳ 대기 |
-| [API-004](./api/API-004.md) | API | - | - | ⏳ 대기 |
+| [API-001](./api/API-001.md) | API | packages/backend/src/execution/execution.controller.ts | packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
+| [API-002](./api/API-002.md) | API | packages/backend/src/execution/execution.controller.ts | packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
+| [API-004](./api/API-004.md) | API | packages/backend/src/execution/execution.controller.ts | packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
 
 ### Feature Unit 3: History & Statistics
 | Spec | Type | 구현 파일 | 테스트 파일 | 상태 |
@@ -62,7 +62,7 @@
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 비고 |
 |---------|----------|----------|------------|------|------|
 | [FEAT-001](./features/FEAT-001.md) | System Architecture | packages/*, package.json, turbo.json | - | ✅ 완료 | 모노레포 구조 구현 및 빌드 검증 완료 |
-| [FEAT-002](./features/FEAT-002.md) | Agent Execution Management | - | - | ⏳ 대기 | K8s Job 관리 기능, UI-001과 함께 구현 |
+| [FEAT-002](./features/FEAT-002.md) | Agent Execution Management | packages/backend/src/execution/*.ts, packages/backend/src/prisma/*.ts | Unit: execution.service.spec.ts, Integration: test/execution.integration.spec.ts, E2E: e2e/tests/execution-api.spec.ts | ✅ 완료 | ExecutionService, Controller 구현 완료, 통합/E2E 테스트 추가 |
 | [FEAT-003](./features/FEAT-003.md) | Execution History Management | - | - | ⏳ 대기 | PostgreSQL 히스토리 저장, UI-002와 함께 구현 |
 | [FEAT-004](./features/FEAT-004.md) | Artifact Management | - | - | ⏳ 대기 | S3 아티팩트 관리, UI-003과 함께 구현 |
 
@@ -83,10 +83,10 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 비고 |
 |---------|----------|----------|------------|------|------|
-| [API-001](./api/API-001.md) | Create Execution | - | - | ⏳ 대기 | POST /api/v1/executions |
-| [API-002](./api/API-002.md) | Get Execution | - | - | ⏳ 대기 | GET /api/v1/executions/{id} |
-| [API-003](./api/API-003.md) | List Executions | - | - | ⏳ 대기 | GET /api/v1/executions |
-| [API-004](./api/API-004.md) | Cancel Execution | - | - | ⏳ 대기 | POST /api/v1/executions/{id}/cancel |
+| [API-001](./api/API-001.md) | Create Execution | packages/backend/src/execution/execution.controller.ts | Integration + E2E tests | ✅ 완료 | POST /api/v1/executions |
+| [API-002](./api/API-002.md) | Get Execution | packages/backend/src/execution/execution.controller.ts | Integration + E2E tests | ✅ 완료 | GET /api/v1/executions/{id} |
+| [API-003](./api/API-003.md) | List Executions | packages/backend/src/execution/execution.controller.ts | Integration + E2E tests | ✅ 완료 | GET /api/v1/executions |
+| [API-004](./api/API-004.md) | Cancel Execution | packages/backend/src/execution/execution.controller.ts | Integration + E2E tests | ✅ 완료 | POST /api/v1/executions/{id}/cancel |
 | [API-005](./api/API-005.md) | Artifact Management APIs | - | - | ⏳ 대기 | 아티팩트 CRUD |
 
 ---
@@ -145,12 +145,12 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 
 | 카테고리 | 전체 | 완료 | 진행중 | 대기 | 완료율 |
 |---------|-----|-----|-------|-----|--------|
-| FEAT | 4 | 1 | 0 | 3 | 25% |
+| FEAT | 4 | 2 | 0 | 2 | 50% |
 | UI | 4 | 1 | 0 | 3 | 25% |
-| API | 5 | 0 | 0 | 5 | 0% |
+| API | 5 | 4 | 0 | 1 | 80% |
 | DATA | 1 | 1 | 0 | 0 | 100% |
 | INFRA | 1 | 1 | 0 | 0 | 100% |
-| **총계** | **15** | **4** | **0** | **11** | **27%** |
+| **총계** | **15** | **9** | **0** | **6** | **60%** |
 
 ---
 
@@ -206,3 +206,5 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 | 2025-12-27 | UI-004 | 프론트엔드 테스트 추가 (Jest, React Testing Library, UI/Auth 컴포넌트 테스트) | Claude |
 | 2025-12-27 | UI-004, INFRA-001 | E2E 테스트 추가 (Playwright, 로그인/네비게이션/UI 컴포넌트 테스트) | Claude |
 | 2025-12-28 | INFRA-001 | REQ-6 추가: Multi-Platform Docker Build (ARM64 지원) 명세 및 구현 | Claude |
+| 2025-12-28 | FEAT-002, API-001~004 | 실행 관리 백엔드 구현 (ExecutionService, Controller, PrismaModule, 22개 테스트) | Claude |
+| 2025-12-28 | FEAT-002, API-001~004 | Integration 테스트 추가 (20개), E2E API 테스트 추가 (15개) | Claude |
