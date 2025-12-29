@@ -1,0 +1,74 @@
+# Agent Job Template
+# @spec FEAT-001 REQ-2
+# This is a template - actual jobs are created dynamically by the backend service
+# Variables like ${EXECUTION_ID}, ${TASK_PROMPT} are replaced at runtime
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: claude-agent-${EXECUTION_ID}
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+    app.kubernetes.io/component: agent
+    claude-agent/execution-id: "${EXECUTION_ID}"
+spec:
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 0
+  activeDeadlineSeconds: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: claude-agent
+        app.kubernetes.io/component: agent
+        claude-agent/execution-id: "${EXECUTION_ID}"
+    spec:
+      serviceAccountName: claude-agent-agent
+      restartPolicy: Never
+      containers:
+        - name: agent
+          image: ghcr.io/claude-agent/agent:latest
+          imagePullPolicy: Always
+          env:
+            - name: EXECUTION_ID
+              value: "${EXECUTION_ID}"
+            - name: TASK_PROMPT
+              value: "${TASK_PROMPT}"
+            - name: CALLBACK_URL
+              value: "http://claude-agent-backend:3001/api/v1/executions/${EXECUTION_ID}/callback"
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: claude-agent-secret
+                  key: ANTHROPIC_API_KEY
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: claude-agent-secret
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: claude-agent-secret
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: claude-agent-config
+                  key: S3_BUCKET
+            - name: S3_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: claude-agent-config
+                  key: S3_REGION
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false

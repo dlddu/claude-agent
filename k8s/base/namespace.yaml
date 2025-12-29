@@ -1,0 +1,9 @@
+# Kubernetes Namespace for Claude Agent Service
+# @spec FEAT-001 REQ-2
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+    app.kubernetes.io/managed-by: kubectl

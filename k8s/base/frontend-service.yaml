@@ -1,0 +1,20 @@
+# Frontend Service
+# @spec FEAT-001 REQ-2, REQ-3
+apiVersion: v1
+kind: Service
+metadata:
+  name: claude-agent-frontend
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+    app.kubernetes.io/component: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: claude-agent
+    app.kubernetes.io/component: frontend
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
+      protocol: TCP

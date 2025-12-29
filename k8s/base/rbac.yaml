@@ -1,0 +1,101 @@
+# RBAC Configuration for Claude Agent Service
+# @spec FEAT-001 REQ-2, REQ-4
+---
+# ServiceAccount for Backend - can create/manage Jobs
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-agent-backend
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+    app.kubernetes.io/component: backend
+
+---
+# ServiceAccount for Agent Jobs - limited permissions
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-agent-agent
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+    app.kubernetes.io/component: agent
+
+---
+# Role for Backend - Job management
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: claude-agent-backend-role
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+rules:
+  # Job management
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "get", "list", "watch", "delete"]
+  # Pod logs for monitoring
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  # ConfigMaps and Secrets (read-only)
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get"]
+
+---
+# RoleBinding for Backend
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: claude-agent-backend-rolebinding
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+subjects:
+  - kind: ServiceAccount
+    name: claude-agent-backend
+    namespace: claude-agent
+roleRef:
+  kind: Role
+  name: claude-agent-backend-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Role for Agent - minimal permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: claude-agent-agent-role
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+rules:
+  # Only allow reading own configmap/secret
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["claude-agent-config"]
+    verbs: ["get"]
+
+---
+# RoleBinding for Agent
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: claude-agent-agent-rolebinding
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+subjects:
+  - kind: ServiceAccount
+    name: claude-agent-agent
+    namespace: claude-agent
+roleRef:
+  kind: Role
+  name: claude-agent-agent-role
+  apiGroup: rbac.authorization.k8s.io
