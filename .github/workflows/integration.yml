@@ -433,8 +433,8 @@ jobs:
           S3_BUCKET: claude-agent-artifacts
           S3_REGION: ap-northeast-2
         run: |
-          # Create a simple S3 integration test script
-          cat > /tmp/s3-test.ts << 'EOF'
+          # Run S3 integration test using project's ts-node
+          cat > s3-integration-test.ts << 'EOF'
           import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 
           async function testS3() {
@@ -491,7 +491,8 @@ jobs:
           });
           EOF
 
-          npx ts-node /tmp/s3-test.ts
+          pnpm ts-node s3-integration-test.ts
+          rm -f s3-integration-test.ts
 
       - name: Verify S3 bucket contents
         env:
