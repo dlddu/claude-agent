@@ -425,74 +425,50 @@ jobs:
         run: pnpm build
 
       - name: Run S3 integration tests
-        working-directory: packages/backend
         env:
-          AWS_ENDPOINT: http://localhost:4566
           AWS_ACCESS_KEY_ID: test
           AWS_SECRET_ACCESS_KEY: test
-          S3_BUCKET: claude-agent-artifacts
-          S3_REGION: ap-northeast-2
+          AWS_DEFAULT_REGION: ap-northeast-2
         run: |
-          # Run S3 integration test using project's ts-node
-          cat > s3-integration-test.ts << 'EOF'
-          import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+          # Test S3 operations using AWS CLI with LocalStack
+          ENDPOINT="http://localhost:4566"
+          BUCKET="claude-agent-artifacts"
+          TEST_FILE="/tmp/s3-test-file.txt"
+          TEST_KEY="test/integration-test.txt"
 
-          async function testS3() {
-            const client = new S3Client({
-              region: process.env.S3_REGION || 'ap-northeast-2',
-              endpoint: process.env.AWS_ENDPOINT,
-              forcePathStyle: true,
-              credentials: {
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'test',
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'test',
-              },
-            });
+          echo "Testing S3 integration with LocalStack..."
 
-            const bucket = process.env.S3_BUCKET || 'claude-agent-artifacts';
-            const testKey = 'test/integration-test.txt';
-            const testContent = 'Hello from S3 integration test!';
+          # Create test file
+          echo "Hello from S3 integration test!" > "$TEST_FILE"
 
-            // Test upload
-            console.log('Testing upload...');
-            await client.send(new PutObjectCommand({
-              Bucket: bucket,
-              Key: testKey,
-              Body: testContent,
-              ContentType: 'text/plain',
-            }));
-            console.log('Upload successful');
+          # Test upload
+          echo "Testing upload..."
+          aws --endpoint-url=$ENDPOINT s3 cp "$TEST_FILE" "s3://$BUCKET/$TEST_KEY"
+          echo "Upload successful"
 
-            // Test download
-            console.log('Testing download...');
-            const getResponse = await client.send(new GetObjectCommand({
-              Bucket: bucket,
-              Key: testKey,
-            }));
-            const downloadedContent = await getResponse.Body?.transformToString();
-            if (downloadedContent !== testContent) {
-              throw new Error('Downloaded content does not match uploaded content');
-            }
-            console.log('Download successful');
+          # Test download
+          echo "Testing download..."
+          aws --endpoint-url=$ENDPOINT s3 cp "s3://$BUCKET/$TEST_KEY" /tmp/s3-downloaded.txt
+          if diff "$TEST_FILE" /tmp/s3-downloaded.txt > /dev/null; then
+            echo "Download successful - content matches"
+          else
+            echo "Error: Downloaded content does not match"
+            exit 1
+          fi
 
-            // Test delete
-            console.log('Testing delete...');
-            await client.send(new DeleteObjectCommand({
-              Bucket: bucket,
-              Key: testKey,
-            }));
-            console.log('Delete successful');
+          # Test list
+          echo "Testing list..."
+          aws --endpoint-url=$ENDPOINT s3 ls "s3://$BUCKET/test/"
 
-            console.log('All S3 integration tests passed!');
-          }
+          # Test delete
+          echo "Testing delete..."
+          aws --endpoint-url=$ENDPOINT s3 rm "s3://$BUCKET/$TEST_KEY"
+          echo "Delete successful"
 
-          testS3().catch(err => {
-            console.error('S3 integration test failed:', err);
-            process.exit(1);
-          });
-          EOF
+          # Cleanup
+          rm -f "$TEST_FILE" /tmp/s3-downloaded.txt
 
-          pnpm ts-node s3-integration-test.ts
-          rm -f s3-integration-test.ts
+          echo "All S3 integration tests passed!"
 
       - name: Verify S3 bucket contents
         env:
