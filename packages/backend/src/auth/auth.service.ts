@@ -136,7 +136,9 @@ export class AuthService {
   /**
    * Refresh access token
    */
-  async refreshAccessToken(refreshToken: string): Promise<{ accessToken: string }> {
+  async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<{ accessToken: string }> {
     try {
       const payload = this.jwtService.verify<JwtPayload>(refreshToken, {
         secret: this.refreshSecret,
@@ -150,7 +152,9 @@ export class AuthService {
       const accessToken = this.generateAccessToken(user);
       return { accessToken };
     } catch (error) {
-      this.logger.warn(`Failed refresh token validation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.warn(
+        `Failed refresh token validation: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       throw new UnauthorizedException('Invalid refresh token');
     }
   }

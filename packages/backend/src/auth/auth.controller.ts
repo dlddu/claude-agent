@@ -42,9 +42,17 @@ export class AuthController {
    */
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto): Promise<TokenResponse & { user: Omit<User, 'passwordHash'> }> {
-    const tokens = await this.authService.login(loginDto.email, loginDto.password);
-    const user = await this.authService.validateUser(loginDto.email, loginDto.password);
+  async login(
+    @Body() loginDto: LoginDto,
+  ): Promise<TokenResponse & { user: Omit<User, 'passwordHash'> }> {
+    const tokens = await this.authService.login(
+      loginDto.email,
+      loginDto.password,
+    );
+    const user = await this.authService.validateUser(
+      loginDto.email,
+      loginDto.password,
+    );
 
     return {
       ...tokens,
@@ -62,7 +70,9 @@ export class AuthController {
    */
   @Post('api-key')
   @HttpCode(HttpStatus.OK)
-  async loginWithApiKey(@Body() apiKeyDto: ApiKeyLoginDto): Promise<TokenResponse & { user: User }> {
+  async loginWithApiKey(
+    @Body() apiKeyDto: ApiKeyLoginDto,
+  ): Promise<TokenResponse & { user: User }> {
     const tokens = await this.authService.loginWithApiKey(apiKeyDto.apiKey);
     const user = await this.authService.validateApiKey(apiKeyDto.apiKey);
 
@@ -77,7 +87,9 @@ export class AuthController {
    */
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refresh(@Body() refreshDto: RefreshTokenDto): Promise<{ accessToken: string }> {
+  async refresh(
+    @Body() refreshDto: RefreshTokenDto,
+  ): Promise<{ accessToken: string }> {
     return this.authService.refreshAccessToken(refreshDto.refreshToken);
   }
 

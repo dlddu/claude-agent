@@ -321,6 +321,7 @@ jobs:
           echo "=== Validating Kubernetes manifests ==="
           kubeconform -summary -output json \
             -skip agent-job-template.yaml \
+            -skip kustomization.yaml \
             -kubernetes-version 1.28.0 \
             k8s/base/*.yaml
 

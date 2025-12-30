@@ -13,12 +13,16 @@ import * as bcrypt from 'bcrypt';
 // Mock bcrypt
 jest.mock('bcrypt', () => ({
   compare: jest.fn(),
-  hash: jest.fn().mockImplementation((password) => Promise.resolve(`$2b$10$hashed_${password}`)),
+  hash: jest
+    .fn()
+    .mockImplementation((password) =>
+      Promise.resolve(`$2b$10$hashed_${password}`),
+    ),
 }));
 
 describe('AuthService', () => {
   let service: AuthService;
-  let jwtService: JwtService;
+  let _jwtService: JwtService;
 
   const mockJwtService = {
     sign: jest.fn(),
@@ -55,7 +59,7 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    jwtService = module.get<JwtService>(JwtService);
+    _jwtService = module.get<JwtService>(JwtService);
   });
 
   describe('validateUser', () => {
@@ -69,13 +73,19 @@ describe('AuthService', () => {
     });
 
     it('should return null when email is not found', async () => {
-      const user = await service.validateUser('unknown@example.com', 'password');
+      const user = await service.validateUser(
+        'unknown@example.com',
+        'password',
+      );
 
       expect(user).toBeNull();
     });
 
     it('should return null when password is invalid', async () => {
-      const user = await service.validateUser('admin@example.com', 'wrongpassword');
+      const user = await service.validateUser(
+        'admin@example.com',
+        'wrongpassword',
+      );
 
       expect(user).toBeNull();
     });

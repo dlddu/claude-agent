@@ -61,8 +61,6 @@ export class CombinedAuthGuard {
       }
     }
 
-    throw new UnauthorizedException(
-      'Valid JWT token or API key is required',
-    );
+    throw new UnauthorizedException('Valid JWT token or API key is required');
   }
 }
