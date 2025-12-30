@@ -120,10 +120,10 @@ setup_gh_auth() {
     exit 1
 }
 
-# GitHub API로 워크플로우 조회 (gh CLI 없이)
-get_latest_run_api() {
+# GitHub API로 특정 commit에 대한 모든 워크플로우 조회
+get_runs_for_commit_api() {
     local repo=$1
-    local branch=$2
+    local commit_sha=$2
     local token="${GITHUB_TOKEN:-$GH_TOKEN}"
 
     if [ -z "$token" ]; then
@@ -133,8 +133,20 @@ get_latest_run_api() {
 
     curl -s -H "Authorization: token $token" \
         -H "Accept: application/vnd.github.v3+json" \
-        "https://api.github.com/repos/${repo}/actions/runs?branch=${branch}&per_page=1" \
-        | jq -r '.workflow_runs[0] | {id: .id, status: .status, conclusion: .conclusion, name: .name}'
+        "https://api.github.com/repos/${repo}/actions/runs?head_sha=${commit_sha}&per_page=100" \
+        | jq -r '.workflow_runs[] | {id: .id, status: .status, conclusion: .conclusion, name: .name}'
+}
+
+# 특정 commit에 대한 워크플로우 run ID 목록 조회
+get_run_ids_for_commit() {
+    local repo=$1
+    local commit_sha=$2
+    local token="${GITHUB_TOKEN:-$GH_TOKEN}"
+
+    curl -s -H "Authorization: token $token" \
+        -H "Accept: application/vnd.github.v3+json" \
+        "https://api.github.com/repos/${repo}/actions/runs?head_sha=${commit_sha}&per_page=100" \
+        | jq -r '.workflow_runs[].id'
 }
 
 # 워크플로우 jobs 및 steps 조회
@@ -192,29 +204,79 @@ show_workflow_jobs() {
     done
 }
 
-# 워크플로우 완료 대기 (API 사용)
-wait_for_completion_api() {
+# 단일 워크플로우 상태 조회
+get_workflow_status() {
     local repo=$1
     local run_id=$2
+    local token="${GITHUB_TOKEN:-$GH_TOKEN}"
+
+    curl -s -H "Authorization: token $token" \
+        -H "Accept: application/vnd.github.v3+json" \
+        "https://api.github.com/repos/${repo}/actions/runs/${run_id}" \
+        | jq -r '{id: .id, name: .name, status: .status, conclusion: .conclusion}'
+}
+
+# 모든 워크플로우 완료 대기 (API 사용)
+wait_for_all_workflows() {
+    local repo=$1
+    local commit_sha=$2
     local elapsed=0
     local token="${GITHUB_TOKEN:-$GH_TOKEN}"
 
-    log_info "Waiting for workflow run #$run_id to complete..."
+    log_info "Waiting for all workflows for commit $commit_sha to complete..."
 
     while [ $elapsed -lt $MAX_WAIT_TIME ]; do
-        local response=$(curl -s -H "Authorization: token $token" \
+        # 현재 commit에 대한 모든 워크플로우 조회
+        local runs_response=$(curl -s -H "Authorization: token $token" \
             -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${repo}/actions/runs/${run_id}")
+            "https://api.github.com/repos/${repo}/actions/runs?head_sha=${commit_sha}&per_page=100")
 
-        local status=$(echo "$response" | jq -r '.status')
+        local total_count=$(echo "$runs_response" | jq -r '.total_count')
 
-        if [ "$status" = "completed" ]; then
-            local conclusion=$(echo "$response" | jq -r '.conclusion')
-            echo "$conclusion"
+        if [ "$total_count" = "0" ] || [ "$total_count" = "null" ]; then
+            log_warn "No workflows found yet... (elapsed: ${elapsed}s)"
+            sleep $CHECK_INTERVAL
+            elapsed=$((elapsed + CHECK_INTERVAL))
+            continue
+        fi
+
+        # 각 워크플로우 상태 확인
+        local all_completed=true
+        local any_failed=false
+        local pending_count=0
+        local completed_count=0
+        local failed_runs=""
+
+        while IFS= read -r run; do
+            local run_id=$(echo "$run" | jq -r '.id')
+            local run_name=$(echo "$run" | jq -r '.name')
+            local run_status=$(echo "$run" | jq -r '.status')
+            local run_conclusion=$(echo "$run" | jq -r '.conclusion')
+
+            if [ "$run_status" != "completed" ]; then
+                all_completed=false
+                pending_count=$((pending_count + 1))
+            else
+                completed_count=$((completed_count + 1))
+                if [ "$run_conclusion" = "failure" ]; then
+                    any_failed=true
+                    failed_runs="${failed_runs}${run_id}:${run_name}\n"
+                fi
+            fi
+        done < <(echo "$runs_response" | jq -c '.workflow_runs[]')
+
+        log_info "Progress: $completed_count completed, $pending_count pending (elapsed: ${elapsed}s)"
+
+        if [ "$all_completed" = true ]; then
+            if [ "$any_failed" = true ]; then
+                echo "failure"
+                echo -e "$failed_runs" | head -n -1  # 실패한 run 정보 출력 (마지막 빈 줄 제외)
+            else
+                echo "success"
+            fi
             return 0
         fi
 
-        log_info "Status: $status (elapsed: ${elapsed}s)"
         sleep $CHECK_INTERVAL
         elapsed=$((elapsed + CHECK_INTERVAL))
     done
@@ -230,6 +292,7 @@ main() {
 
     local repo=$(get_repo_info)
     local branch=$(git branch --show-current)
+    local commit_sha=$(git rev-parse HEAD)
 
     if [ -z "$repo" ]; then
         log_error "Could not determine GitHub repository."
@@ -239,6 +302,7 @@ main() {
 
     log_info "GitHub repository: $repo"
     log_info "Branch: $branch"
+    log_info "Commit SHA: $commit_sha"
 
     # gh CLI 설치 및 인증
     install_gh_cli
@@ -248,46 +312,67 @@ main() {
     export GH_REPO="$repo"
 
     # 잠시 대기 (워크플로우 시작 대기)
-    log_info "Waiting for workflow to start..."
+    log_info "Waiting for workflows to start..."
     sleep 10
 
-    local run_info=$(get_latest_run_api "$repo" "$branch")
+    local token="${GITHUB_TOKEN:-$GH_TOKEN}"
 
-    if [ -z "$run_info" ] || [ "$run_info" = "null" ] || [ "$(echo "$run_info" | jq -r '.id')" = "null" ]; then
-        log_warn "No workflow run found. Waiting longer..."
+    # 해당 commit에 대한 워크플로우 조회
+    local runs_response=$(curl -s -H "Authorization: token $token" \
+        -H "Accept: application/vnd.github.v3+json" \
+        "https://api.github.com/repos/${repo}/actions/runs?head_sha=${commit_sha}&per_page=100")
+
+    local workflow_count=$(echo "$runs_response" | jq -r '.total_count')
+
+    if [ "$workflow_count" = "0" ] || [ "$workflow_count" = "null" ]; then
+        log_warn "No workflow runs found. Waiting longer..."
         sleep 20
-        run_info=$(get_latest_run_api "$repo" "$branch")
+        runs_response=$(curl -s -H "Authorization: token $token" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${repo}/actions/runs?head_sha=${commit_sha}&per_page=100")
+        workflow_count=$(echo "$runs_response" | jq -r '.total_count')
     fi
 
-    if [ -z "$run_info" ] || [ "$run_info" = "null" ] || [ "$(echo "$run_info" | jq -r '.id')" = "null" ]; then
-        log_error "No workflow run found for branch: $branch"
+    if [ "$workflow_count" = "0" ] || [ "$workflow_count" = "null" ]; then
+        log_error "No workflow runs found for commit: $commit_sha"
         exit 1
     fi
 
-    local run_id=$(echo "$run_info" | jq -r '.id')
-    local run_name=$(echo "$run_info" | jq -r '.name')
-    local run_status=$(echo "$run_info" | jq -r '.status')
+    log_info "Found $workflow_count workflow(s) for commit $commit_sha"
 
-    log_info "Found workflow run #$run_id"
-    log_info "Name: $run_name"
-    log_info "Current status: $run_status"
+    # 워크플로우 목록 출력
+    echo "" >&2
+    log_info "Workflows:"
+    echo "$runs_response" | jq -r '.workflow_runs[] | "  - \(.name) (#\(.id)) [\(.status)]"' >&2
+    echo "" >&2
 
-    local result=$(wait_for_completion_api "$repo" "$run_id")
+    # 모든 워크플로우 완료 대기
+    local result_output=$(wait_for_all_workflows "$repo" "$commit_sha")
+    local result=$(echo "$result_output" | head -n 1)
+    local failed_runs=$(echo "$result_output" | tail -n +2)
 
     case "$result" in
         "success")
-            log_info "Workflow completed successfully!"
+            log_info "All workflows completed successfully!"
             exit 0
             ;;
         "failure")
-            log_error "Workflow failed!"
+            log_error "One or more workflows failed!"
             echo "" >&2
-            show_workflow_jobs "$repo" "$run_id"
-            log_error "Full logs: https://github.com/$repo/actions/runs/$run_id"
+
+            # 실패한 각 워크플로우에 대해 jobs 정보 표시
+            echo "$failed_runs" | while IFS=':' read -r run_id run_name; do
+                if [ -n "$run_id" ]; then
+                    log_error "Failed workflow: $run_name (#$run_id)"
+                    show_workflow_jobs "$repo" "$run_id"
+                    log_error "Full logs: https://github.com/$repo/actions/runs/$run_id"
+                    echo "" >&2
+                fi
+            done
             exit 1
             ;;
         "timeout")
-            log_error "Workflow timed out"
+            log_error "Timeout waiting for workflows to complete"
             exit 2
             ;;
         *)
