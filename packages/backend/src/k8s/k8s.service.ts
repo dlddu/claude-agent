@@ -97,8 +97,7 @@ export class K8sService implements OnModuleInit {
 
     const jobName = `claude-agent-${config.executionId}`;
     const backendServiceUrl =
-      process.env.BACKEND_SERVICE_URL ||
-      `http://claude-agent-backend:3001`;
+      process.env.BACKEND_SERVICE_URL || `http://claude-agent-backend:3001`;
 
     const job: k8s.V1Job = {
       apiVersion: 'batch/v1',
@@ -244,7 +243,11 @@ export class K8sService implements OnModuleInit {
         status = 'failed';
       } else if (job.status?.active && job.status.active > 0) {
         status = 'running';
-      } else if (!job.status?.active && !job.status?.succeeded && !job.status?.failed) {
+      } else if (
+        !job.status?.active &&
+        !job.status?.succeeded &&
+        !job.status?.failed
+      ) {
         status = 'pending';
       }
 
@@ -363,9 +366,7 @@ export class K8sService implements OnModuleInit {
    */
   async listJobs(): Promise<JobStatus[]> {
     if (!this.isConfigured) {
-      throw new Error(
-        'Kubernetes client is not configured. Cannot list jobs.',
-      );
+      throw new Error('Kubernetes client is not configured. Cannot list jobs.');
     }
 
     const response = await this.batchApi.listNamespacedJob(
@@ -386,7 +387,11 @@ export class K8sService implements OnModuleInit {
         status = 'failed';
       } else if (job.status?.active && job.status.active > 0) {
         status = 'running';
-      } else if (!job.status?.active && !job.status?.succeeded && !job.status?.failed) {
+      } else if (
+        !job.status?.active &&
+        !job.status?.succeeded &&
+        !job.status?.failed
+      ) {
         status = 'pending';
       }
 

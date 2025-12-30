@@ -208,7 +208,9 @@ export class S3Service implements OnModuleInit {
    */
   async exists(key: string): Promise<boolean> {
     if (!this.isConfigured) {
-      throw new Error('S3 client is not configured. Cannot check file existence.');
+      throw new Error(
+        'S3 client is not configured. Cannot check file existence.',
+      );
     }
 
     try {

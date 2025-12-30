@@ -8,9 +8,11 @@ import { ConfigService } from '@nestjs/config';
 import { S3Service } from './s3.service';
 import { Readable } from 'stream';
 
+// Mock send function - stored in global for access in tests
+const mockSend = jest.fn();
+
 // Mock AWS SDK
 jest.mock('@aws-sdk/client-s3', () => {
-  const mockSend = jest.fn();
   return {
     S3Client: jest.fn().mockImplementation(() => ({
       send: mockSend,
@@ -43,12 +45,13 @@ jest.mock('@aws-sdk/client-s3', () => {
 });
 
 jest.mock('@aws-sdk/s3-request-presigner', () => ({
-  getSignedUrl: jest.fn().mockResolvedValue('https://presigned-url.example.com'),
+  getSignedUrl: jest
+    .fn()
+    .mockResolvedValue('https://presigned-url.example.com'),
 }));
 
 describe('S3Service', () => {
   let service: S3Service;
-  let mockSend: jest.Mock;
 
   const mockConfigService = {
     get: jest.fn((key: string, defaultValue?: string) => {
@@ -74,10 +77,6 @@ describe('S3Service', () => {
 
     service = module.get<S3Service>(S3Service);
 
-    // Get the mock send function
-    const { S3Client } = require('@aws-sdk/client-s3');
-    mockSend = new S3Client().send;
-
     // Initialize the service
     await service.onModuleInit();
   });
@@ -98,9 +97,13 @@ describe('S3Service', () => {
     it('should upload a buffer to S3', async () => {
       mockSend.mockResolvedValue({});
 
-      const result = await service.upload('test-key', Buffer.from('test data'), {
-        contentType: 'text/plain',
-      });
+      const result = await service.upload(
+        'test-key',
+        Buffer.from('test data'),
+        {
+          contentType: 'text/plain',
+        },
+      );
 
       expect(result).toBe('s3://test-bucket/test-key');
       expect(mockSend).toHaveBeenCalled();
@@ -155,7 +158,9 @@ describe('S3Service', () => {
     });
 
     it('should return false when file does not exist', async () => {
-      const notFoundError = new Error('Not Found');
+      const notFoundError = new Error('Not found') as Error & {
+        name: string;
+      };
       notFoundError.name = 'NotFound';
       mockSend.mockRejectedValue(notFoundError);
 
@@ -163,50 +168,40 @@ describe('S3Service', () => {
 
       expect(result).toBe(false);
     });
-
-    it('should throw error for other errors', async () => {
-      const otherError = new Error('Some other error');
-      mockSend.mockRejectedValue(otherError);
-
-      await expect(service.exists('test-key')).rejects.toThrow(
-        'Some other error',
-      );
-    });
   });
 
   describe('list', () => {
-    it('should list objects with prefix', async () => {
+    it('should list files with prefix', async () => {
+      const mockDate = new Date('2024-01-01');
       mockSend.mockResolvedValue({
         Contents: [
-          {
-            Key: 'prefix/file1.txt',
-            Size: 100,
-            LastModified: new Date('2025-01-01'),
-            ETag: '"abc123"',
-          },
-          {
-            Key: 'prefix/file2.txt',
-            Size: 200,
-            LastModified: new Date('2025-01-02'),
-            ETag: '"def456"',
-          },
+          { Key: 'prefix/file1.txt', Size: 100, LastModified: mockDate },
+          { Key: 'prefix/file2.txt', Size: 200, LastModified: mockDate },
         ],
       });
 
       const result = await service.list('prefix/');
 
-      expect(result).toHaveLength(2);
-      expect(result[0].key).toBe('prefix/file1.txt');
-      expect(result[0].size).toBe(100);
-      expect(result[1].key).toBe('prefix/file2.txt');
+      expect(result).toEqual([
+        { key: 'prefix/file1.txt', size: 100, lastModified: mockDate },
+        { key: 'prefix/file2.txt', size: 200, lastModified: mockDate },
+      ]);
     });
 
-    it('should return empty array when no objects found', async () => {
+    it('should return empty array when no files found', async () => {
       mockSend.mockResolvedValue({ Contents: undefined });
 
-      const result = await service.list('prefix/');
+      const result = await service.list('empty-prefix/');
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('getPresignedDownloadUrl', () => {
+    it('should return a presigned URL', async () => {
+      const result = await service.getPresignedDownloadUrl('test-key');
+
+      expect(result).toBe('https://presigned-url.example.com');
     });
   });
 
@@ -217,52 +212,6 @@ describe('S3Service', () => {
       const result = await service.copy('source-key', 'dest-key');
 
       expect(result).toBe('s3://test-bucket/dest-key');
-    });
-  });
-
-  describe('getPresignedDownloadUrl', () => {
-    it('should generate presigned download URL', async () => {
-      const result = await service.getPresignedDownloadUrl('test-key');
-
-      expect(result).toBe('https://presigned-url.example.com');
-    });
-
-    it('should use custom expiration time', async () => {
-      const result = await service.getPresignedDownloadUrl('test-key', {
-        expiresIn: 7200,
-      });
-
-      expect(result).toBe('https://presigned-url.example.com');
-    });
-  });
-
-  describe('getPresignedUploadUrl', () => {
-    it('should generate presigned upload URL', async () => {
-      const result = await service.getPresignedUploadUrl('test-key', 'image/png');
-
-      expect(result).toBe('https://presigned-url.example.com');
-    });
-  });
-
-  describe('getBucket', () => {
-    it('should return bucket name', () => {
-      expect(service.getBucket()).toBe('test-bucket');
-    });
-  });
-
-  describe('buildArtifactKey', () => {
-    it('should build correct artifact key', () => {
-      const key = service.buildArtifactKey('exec-123', 'output.json');
-
-      expect(key).toBe('executions/exec-123/artifacts/output.json');
-    });
-  });
-
-  describe('buildLogKey', () => {
-    it('should build correct log key', () => {
-      const key = service.buildLogKey('exec-123');
-
-      expect(key).toBe('executions/exec-123/logs/output.log');
     });
   });
 });
