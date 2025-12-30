@@ -142,17 +142,20 @@ export class ExecutionService {
       this.prisma.execution.count({ where }),
     ]);
 
-    const items: ExecutionSummary[] = executions.map((e: typeof executions[number]) => ({
-      id: e.id,
-      prompt: e.prompt.substring(0, 200) + (e.prompt.length > 200 ? '...' : ''),
-      model: e.model,
-      status: e.status as ExecutionStatus,
-      createdAt: e.createdAt,
-      completedAt: e.completedAt ?? undefined,
-      tokensUsed: e.tokensUsed ?? undefined,
-      estimatedCost: e.estimatedCost ? Number(e.estimatedCost) : undefined,
-      artifactCount: e._count.artifacts,
-    }));
+    const items: ExecutionSummary[] = executions.map(
+      (e: (typeof executions)[number]) => ({
+        id: e.id,
+        prompt:
+          e.prompt.substring(0, 200) + (e.prompt.length > 200 ? '...' : ''),
+        model: e.model,
+        status: e.status as ExecutionStatus,
+        createdAt: e.createdAt,
+        completedAt: e.completedAt ?? undefined,
+        tokensUsed: e.tokensUsed ?? undefined,
+        estimatedCost: e.estimatedCost ? Number(e.estimatedCost) : undefined,
+        artifactCount: e._count.artifacts,
+      }),
+    );
 
     return {
       success: true,

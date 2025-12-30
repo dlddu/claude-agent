@@ -319,11 +319,9 @@ jobs:
       - name: Validate K8s manifests
         run: |
           echo "=== Validating Kubernetes manifests ==="
-          kubeconform -summary -output json \
-            -skip agent-job-template.yaml \
-            -skip kustomization.yaml \
-            -kubernetes-version 1.28.0 \
-            k8s/base/*.yaml
+          # Skip Job template (custom resource) and ignore missing schemas (kustomization.yaml)
+          find k8s/base -name "*.yaml" ! -name "agent-job-template.yaml" ! -name "kustomization.yaml" -exec \
+            kubeconform -summary -output json -kubernetes-version 1.28.0 {} +
 
       - name: Validate with kustomize
         run: |
