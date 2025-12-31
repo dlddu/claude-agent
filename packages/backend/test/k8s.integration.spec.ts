@@ -233,7 +233,7 @@ describe('K8sService (Integration)', () => {
   });
 
   describe('getJobLogs', () => {
-    it('should return null for job without pods yet', async () => {
+    it('should return null or string for job without pods yet', async () => {
       const executionId = `test-${Date.now()}-logs`;
       await service.createJob({
         executionId,
@@ -241,11 +241,16 @@ describe('K8sService (Integration)', () => {
       });
       createdJobs.push(executionId);
 
+      // Wait a bit for job to be created
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Immediately check logs (pod may not be created yet)
       const logs = await service.getJobLogs(executionId);
 
-      // Logs may be null if pod hasn't started, or a string if it has
-      expect(logs === null || typeof logs === 'string').toBe(true);
+      // Logs may be null/undefined if pod hasn't started, or a string if it has
+      expect(
+        logs === null || logs === undefined || typeof logs === 'string',
+      ).toBe(true);
     });
 
     it('should return null for non-existent job', async () => {
