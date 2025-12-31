@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/name: claude-agent
     app.kubernetes.io/component: backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: claude-agent
@@ -37,13 +37,6 @@ spec:
           env:
             - name: PORT
               value: "3001"
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "250m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
           livenessProbe:
             httpGet:
               path: /health
