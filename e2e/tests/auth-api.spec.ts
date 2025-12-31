@@ -290,8 +290,8 @@ test.describe('Auth API E2E', () => {
       });
       const tokens1 = await login1.json();
 
-      // Small delay to ensure different timestamp
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait at least 1 second to ensure different JWT iat timestamp
+      await new Promise((resolve) => setTimeout(resolve, 1100));
 
       const login2 = await request.post(`${API_BASE}/auth/login`, {
         data: {
@@ -318,8 +318,8 @@ test.describe('Auth API E2E', () => {
       const { accessToken: originalToken, refreshToken } =
         await loginResponse.json();
 
-      // Small delay
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait at least 1 second to ensure different JWT iat timestamp
+      await new Promise((resolve) => setTimeout(resolve, 1100));
 
       const refreshResponse = await request.post(`${API_BASE}/auth/refresh`, {
         data: { refreshToken },
