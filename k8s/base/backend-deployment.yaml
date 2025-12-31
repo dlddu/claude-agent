@@ -23,7 +23,7 @@ spec:
       serviceAccountName: claude-agent-backend
       containers:
         - name: backend
-          image: ghcr.io/claude-agent/backend:latest
+          image: ghcr.io/claude-agent/backend:main
           imagePullPolicy: Always
           ports:
             - name: http
