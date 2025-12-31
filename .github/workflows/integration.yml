@@ -192,6 +192,12 @@ jobs:
       - name: Build packages
         run: pnpm build
 
+      - name: Verify cluster access
+        run: |
+          echo "KUBECONFIG: $HOME/.kube/config"
+          kubectl cluster-info
+          kubectl get nodes
+
       - name: Run integration tests
         working-directory: packages/backend
         env:
@@ -200,7 +206,7 @@ jobs:
           AWS_ENDPOINT: http://localhost:4566
           S3_BUCKET: claude-agent-artifacts
           S3_REGION: ap-northeast-2
-          KUBECONFIG: ${{ env.HOME }}/.kube/config
+          KUBECONFIG: /home/runner/.kube/config
           K8S_NAMESPACE: claude-agent
         run: pnpm test
 
