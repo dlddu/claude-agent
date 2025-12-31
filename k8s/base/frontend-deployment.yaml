@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/name: claude-agent
     app.kubernetes.io/component: frontend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: claude-agent
@@ -36,13 +36,6 @@ spec:
               value: "3000"
             - name: NEXT_PUBLIC_API_URL
               value: "http://claude-agent-backend:3001"
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "250m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
           livenessProbe:
             httpGet:
               path: /
