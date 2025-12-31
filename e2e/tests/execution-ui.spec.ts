@@ -2,9 +2,59 @@
  * Execution UI E2E Tests
  * @spec UI-001
  */
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
-test.describe('Execution Pages', () => {
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
+
+// Test credentials (from auth.service.ts in-memory store)
+const TEST_USER = {
+  email: 'admin@example.com',
+  password: 'admin123',
+};
+
+/**
+ * Helper function to login via UI
+ */
+async function loginViaUI(page: Page): Promise<void> {
+  await page.goto('/login');
+
+  // Fill login form
+  await page.getByLabel(/email/i).fill(TEST_USER.email);
+  await page.getByLabel(/password/i).fill(TEST_USER.password);
+
+  // Submit login
+  await page.getByRole('button', { name: /sign in/i }).click();
+
+  // Wait for redirect to dashboard
+  await page.waitForURL(/\/dashboard/, { timeout: 10000 });
+}
+
+/**
+ * Helper function to login via API and set tokens
+ */
+async function loginViaAPI(page: Page): Promise<void> {
+  // Login via API
+  const response = await page.request.post(`${BACKEND_URL}/api/v1/auth/login`, {
+    data: {
+      email: TEST_USER.email,
+      password: TEST_USER.password,
+    },
+  });
+
+  const { accessToken, refreshToken } = await response.json();
+
+  // Set tokens in localStorage before navigating
+  await page.goto('/login');
+  await page.evaluate(
+    ({ accessToken, refreshToken }) => {
+      localStorage.setItem('auth_token', accessToken);
+      localStorage.setItem('refresh_token', refreshToken);
+    },
+    { accessToken, refreshToken }
+  );
+}
+
+test.describe('Execution Pages - Unauthenticated', () => {
   test.describe('Execution List Page', () => {
     test('should redirect to login when not authenticated', async ({ page }) => {
       await page.goto('/executions');
@@ -36,6 +86,160 @@ test.describe('Execution Pages', () => {
   });
 });
 
+test.describe('Execution Pages - Authenticated', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginViaAPI(page);
+  });
+
+  test.describe('Execution List Page', () => {
+    test('should display executions page when authenticated', async ({ page }) => {
+      await page.goto('/executions');
+
+      // Should stay on executions page (not redirect to login)
+      await expect(page).toHaveURL(/\/executions/);
+
+      // Should display page title
+      await expect(page.getByRole('heading', { name: 'Executions' })).toBeVisible();
+    });
+
+    test('should display New Execution button', async ({ page }) => {
+      await page.goto('/executions');
+
+      await expect(page.getByRole('link', { name: /new execution/i })).toBeVisible();
+    });
+
+    test('should have filters section', async ({ page }) => {
+      await page.goto('/executions');
+
+      // Should have status filter
+      await expect(page.getByRole('combobox').first()).toBeVisible();
+    });
+
+    test('should navigate to new execution page', async ({ page }) => {
+      await page.goto('/executions');
+
+      await page.getByRole('link', { name: /new execution/i }).click();
+      await expect(page).toHaveURL(/\/executions\/new/);
+    });
+  });
+
+  test.describe('New Execution Page', () => {
+    test('should display new execution form', async ({ page }) => {
+      await page.goto('/executions/new');
+
+      // Should display form title
+      await expect(page.getByRole('heading', { name: 'New Execution' })).toBeVisible();
+
+      // Should have prompt textarea
+      await expect(page.getByPlaceholder(/enter your prompt/i)).toBeVisible();
+    });
+
+    test('should display model selection', async ({ page }) => {
+      await page.goto('/executions/new');
+
+      // Should have model dropdown
+      const modelSelect = page.locator('select');
+      await expect(modelSelect).toBeVisible();
+
+      // Should have Claude models as options
+      await expect(modelSelect).toContainText('Claude');
+    });
+
+    test('should have form validation', async ({ page }) => {
+      await page.goto('/executions/new');
+
+      // Click submit without filling form
+      await page.getByRole('button', { name: /create execution/i }).click();
+
+      // Should show validation error for prompt
+      await expect(page.getByText(/prompt is required/i)).toBeVisible();
+    });
+
+    test('should fill execution form', async ({ page }) => {
+      await page.goto('/executions/new');
+
+      // Fill prompt
+      await page.getByPlaceholder(/enter your prompt/i).fill('Test prompt for E2E');
+
+      // Check that prompt is filled
+      await expect(page.getByPlaceholder(/enter your prompt/i)).toHaveValue('Test prompt for E2E');
+
+      // Character count should update
+      await expect(page.getByText(/20.*\/.*100,000/)).toBeVisible();
+    });
+
+    test('should toggle advanced options', async ({ page }) => {
+      await page.goto('/executions/new');
+
+      // Click on Advanced Options header
+      await page.getByText('Advanced Options').click();
+
+      // Should show callback URL input
+      await expect(page.getByPlaceholder(/https:\/\/example.com\/webhook/i)).toBeVisible();
+
+      // Should show resource configuration inputs
+      await expect(page.getByPlaceholder(/cpu request/i)).toBeVisible();
+      await expect(page.getByPlaceholder(/memory request/i)).toBeVisible();
+    });
+
+    test('should add and remove metadata', async ({ page }) => {
+      await page.goto('/executions/new');
+
+      // Open advanced options
+      await page.getByText('Advanced Options').click();
+
+      // Click Add metadata button
+      await page.getByRole('button', { name: /add/i }).click();
+
+      // Should show key/value inputs
+      await expect(page.getByPlaceholder('Key')).toBeVisible();
+      await expect(page.getByPlaceholder('Value')).toBeVisible();
+
+      // Fill metadata
+      await page.getByPlaceholder('Key').fill('environment');
+      await page.getByPlaceholder('Value').fill('test');
+
+      // Remove metadata
+      await page.locator('button').filter({ has: page.locator('svg.text-red-500') }).click();
+
+      // Should show "No metadata added"
+      await expect(page.getByText(/no metadata added/i)).toBeVisible();
+    });
+
+    test('should have back button', async ({ page }) => {
+      await page.goto('/executions/new');
+
+      await page.getByRole('button', { name: /back/i }).click();
+      await expect(page).toHaveURL(/\/executions$/);
+    });
+  });
+
+  test.describe('Execution Detail Page', () => {
+    test('should display execution detail page', async ({ page }) => {
+      await page.goto('/executions/test-execution-id');
+
+      // Should display page title
+      await expect(page.getByRole('heading', { name: 'Execution Details' })).toBeVisible();
+
+      // Should display execution ID
+      await expect(page.getByText('test-execution-id')).toBeVisible();
+    });
+
+    test('should have back to list button', async ({ page }) => {
+      await page.goto('/executions/test-execution-id');
+
+      await expect(page.getByRole('button', { name: /back to list/i })).toBeVisible();
+    });
+
+    test('should navigate back to list', async ({ page }) => {
+      await page.goto('/executions/test-execution-id');
+
+      await page.getByRole('button', { name: /back to list/i }).click();
+      await expect(page).toHaveURL(/\/executions$/);
+    });
+  });
+});
+
 test.describe('Execution Navigation', () => {
   test('sidebar should have execution menu items', async ({ page }) => {
     // Go to login page to see sidebar structure
@@ -56,5 +260,27 @@ test.describe('Execution Form Validation', () => {
       // Should not return 404 - routes exist (will redirect to login)
       expect(response?.status()).not.toBe(404);
     }
+  });
+});
+
+test.describe('Authenticated Sidebar Navigation', () => {
+  test.beforeEach(async ({ page }) => {
+    await loginViaAPI(page);
+  });
+
+  test('should navigate to executions from sidebar', async ({ page }) => {
+    await page.goto('/dashboard');
+
+    // Click on Executions in sidebar
+    await page.getByRole('link', { name: /executions/i }).first().click();
+    await expect(page).toHaveURL(/\/executions/);
+  });
+
+  test('should show active state for current page in sidebar', async ({ page }) => {
+    await page.goto('/executions');
+
+    // Executions link should be highlighted as active
+    const executionsLink = page.getByRole('link', { name: /executions/i }).first();
+    await expect(executionsLink).toBeVisible();
   });
 });
