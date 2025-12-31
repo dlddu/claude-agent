@@ -187,6 +187,29 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 
 ---
 
+## 사용자 스토리 (User Stories)
+
+### Phase 1: Foundation
+| Story ID | 제목 | 관련 Spec | 상태 |
+|----------|------|----------|------|
+| [US-015](./stories/STORIES-PHASE1.md#us-015-회원-가입) | 회원 가입 | UI-004 | ⏳ 대기 |
+| [US-001](./stories/STORIES-PHASE1.md#us-001-안전한-로그인) | 안전한 로그인 | UI-004 | ✅ 구현됨 |
+| [US-002](./stories/STORIES-PHASE1.md#us-002-자동-로그아웃-및-세션-관리) | 자동 로그아웃 및 세션 관리 | UI-004 | ✅ 구현됨 |
+| [US-003](./stories/STORIES-PHASE1.md#us-003-직관적인-네비게이션) | 직관적인 네비게이션 | UI-004 | ✅ 구현됨 |
+| [US-004](./stories/STORIES-PHASE1.md#us-004-반응형-레이아웃) | 반응형 레이아웃 | UI-004 | ✅ 구현됨 |
+| [US-005](./stories/STORIES-PHASE1.md#us-005-다크-모드-지원) | 다크 모드 지원 | UI-004 | ✅ 구현됨 |
+| [US-006](./stories/STORIES-PHASE1.md#us-006-실시간-알림-수신) | 실시간 알림 수신 | UI-004 | ✅ 구현됨 |
+| [US-007](./stories/STORIES-PHASE1.md#us-007-명확한-에러-피드백) | 명확한 에러 피드백 | UI-004 | ✅ 구현됨 |
+| [US-008](./stories/STORIES-PHASE1.md#us-008-로딩-상태-피드백) | 로딩 상태 피드백 | UI-004 | ✅ 구현됨 |
+| [US-009](./stories/STORIES-PHASE1.md#us-009-키보드-접근성) | 키보드 접근성 | UI-004 | ✅ 구현됨 |
+| [US-010](./stories/STORIES-PHASE1.md#us-010-실행-기록-데이터-추적) | 실행 기록 데이터 추적 | DATA-001 | ✅ 구현됨 |
+| [US-011](./stories/STORIES-PHASE1.md#us-011-아티팩트-데이터-관리) | 아티팩트 데이터 관리 | DATA-001 | ✅ 구현됨 |
+| [US-012](./stories/STORIES-PHASE1.md#us-012-서비스-안정성) | 서비스 안정성 | FEAT-001 | ✅ 구현됨 |
+| [US-013](./stories/STORIES-PHASE1.md#us-013-보안된-데이터-접근) | 보안된 데이터 접근 | FEAT-001 | ✅ 구현됨 |
+| [US-014](./stories/STORIES-PHASE1.md#us-014-지속적인-서비스-개선) | 지속적인 서비스 개선 | INFRA-001 | ✅ 구현됨 |
+
+---
+
 ## 변경 이력
 
 | 날짜 | Spec ID | 변경 내용 | 작성자 |
@@ -214,3 +237,5 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 | 2025-12-29 | FEAT-001 | S3Service 구현 (@aws-sdk/client-s3, upload/download/delete/presigned URLs) | Claude |
 | 2025-12-29 | INFRA-001 | CI 강화: kubeconform K8s 검증, Kind 클러스터 통합 테스트, LocalStack S3 통합 테스트 | Claude |
 | 2025-12-31 | INFRA-001, FEAT-002 | E2E 테스트에 K8s 통합 추가: Kind 클러스터 및 LocalStack 구성, test.fixme를 활성화된 K8s 라이프사이클 테스트로 변경 | Claude |
+| 2025-12-31 | US-001~014 | Phase 1 사용자 스토리 작성 (FEAT-001, DATA-001, INFRA-001, UI-004 기반 14개 스토리) | Claude |
+| 2025-12-31 | US-015 | 회원 가입 사용자 스토리 추가 | Claude |
