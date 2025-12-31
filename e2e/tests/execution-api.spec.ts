@@ -291,14 +291,9 @@ test.describe('Execution Workflow E2E', () => {
    * @spec API-001
    * @spec API-002
    *
-   * This test requires K8s cluster to be available (K8S_ENABLED=true)
-   * In CI, Kind cluster is set up with necessary resources
+   * In CI, Kind cluster is set up with necessary resources (namespace, RBAC, etc.)
    */
   test('full execution lifecycle with K8s', async ({ request }) => {
-    // Skip if K8s is not enabled
-    const k8sEnabled = process.env.K8S_ENABLED === 'true';
-    test.skip(!k8sEnabled, 'K8s integration not enabled - set K8S_ENABLED=true');
-
     // 1. Create execution
     const createResponse = await request.post(`${API_BASE}/executions`, {
       data: {
@@ -368,10 +363,6 @@ test.describe('Execution Workflow E2E', () => {
   });
 
   test('execution lifecycle - verify job creation in K8s', async ({ request }) => {
-    // Skip if K8s is not enabled
-    const k8sEnabled = process.env.K8S_ENABLED === 'true';
-    test.skip(!k8sEnabled, 'K8s integration not enabled - set K8S_ENABLED=true');
-
     // 1. Create execution
     const createResponse = await request.post(`${API_BASE}/executions`, {
       data: {
