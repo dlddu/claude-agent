@@ -373,7 +373,6 @@ jobs:
           BACKEND_URL: http://localhost:3001
           KUBECONFIG: /home/runner/.kube/config
           K8S_NAMESPACE: claude-agent
-          K8S_ENABLED: 'true'
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
