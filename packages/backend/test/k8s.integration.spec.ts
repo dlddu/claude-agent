@@ -13,13 +13,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
 import { K8sService, JobConfig } from '../src/k8s/k8s.service';
 
-// Skip if K8s is not configured (no cluster available)
-const describeIfK8s =
-  process.env.KUBERNETES_SERVICE_HOST || process.env.KUBECONFIG
-    ? describe
-    : describe.skip;
-
-describeIfK8s('K8sService (Integration)', () => {
+describe('K8sService (Integration)', () => {
   let service: K8sService;
   let module: TestingModule;
   const createdJobs: string[] = [];

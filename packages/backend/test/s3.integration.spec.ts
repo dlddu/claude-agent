@@ -15,13 +15,7 @@ import { ConfigModule } from '@nestjs/config';
 import { S3Service } from '../src/s3/s3.service';
 import { Readable } from 'stream';
 
-// Skip if S3 is not configured
-const describeIfS3 =
-  process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
-    ? describe
-    : describe.skip;
-
-describeIfS3('S3Service (Integration)', () => {
+describe('S3Service (Integration)', () => {
   let service: S3Service;
   let module: TestingModule;
   const testPrefix = `test-${Date.now()}`;
