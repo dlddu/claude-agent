@@ -213,3 +213,4 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 | 2025-12-29 | FEAT-001 | AuthModule 구현 (JWT, API Key, Passport strategies, Guards) | Claude |
 | 2025-12-29 | FEAT-001 | S3Service 구현 (@aws-sdk/client-s3, upload/download/delete/presigned URLs) | Claude |
 | 2025-12-29 | INFRA-001 | CI 강화: kubeconform K8s 검증, Kind 클러스터 통합 테스트, LocalStack S3 통합 테스트 | Claude |
+| 2025-12-31 | INFRA-001, FEAT-002 | E2E 테스트에 K8s 통합 추가: Kind 클러스터 및 LocalStack 구성, test.fixme를 활성화된 K8s 라이프사이클 테스트로 변경 | Claude |
