@@ -30,6 +30,18 @@ export interface User {
   passwordHash?: string;
 }
 
+export interface RegisterDto {
+  email: string;
+  password: string;
+  passwordConfirm: string;
+  name: string;
+  agreeToTerms: boolean;
+}
+
+export interface RegisterResponse extends TokenResponse {
+  user: Omit<User, 'passwordHash'>;
+}
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -221,5 +233,87 @@ export class AuthService {
   async hashPassword(password: string): Promise<string> {
     const saltRounds = 10;
     return bcrypt.hash(password, saltRounds);
+  }
+
+  /**
+   * Validate password strength
+   */
+  validatePasswordStrength(password: string): void {
+    if (password.length < 8) {
+      throw new Error('Password must be at least 8 characters');
+    }
+    if (!/[A-Z]/.test(password)) {
+      throw new Error('Password must contain at least one uppercase letter');
+    }
+    if (!/[a-z]/.test(password)) {
+      throw new Error('Password must contain at least one lowercase letter');
+    }
+    if (!/[0-9]/.test(password)) {
+      throw new Error('Password must contain at least one number');
+    }
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+      throw new Error('Password must contain at least one special character');
+    }
+  }
+
+  /**
+   * Register a new user
+   * @spec US-015
+   */
+  async register(dto: RegisterDto): Promise<RegisterResponse> {
+    // Validate terms agreement
+    if (!dto.agreeToTerms) {
+      throw new Error('You must agree to the terms and conditions');
+    }
+
+    // Validate password match
+    if (dto.password !== dto.passwordConfirm) {
+      throw new Error('Passwords do not match');
+    }
+
+    // Validate password strength
+    this.validatePasswordStrength(dto.password);
+
+    // Check if email already exists
+    if (this.users.has(dto.email)) {
+      this.logger.warn(
+        `Registration attempt with existing email: ${dto.email}`,
+      );
+      throw new Error('Email already registered');
+    }
+
+    // Hash password
+    const passwordHash = await this.hashPassword(dto.password);
+
+    // Generate unique ID
+    const id = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Create new user
+    const newUser: User = {
+      id,
+      email: dto.email,
+      name: dto.name,
+      role: 'user',
+      passwordHash,
+    };
+
+    // Store user
+    this.users.set(dto.email, newUser);
+
+    this.logger.log(`New user registered: ${dto.email}`);
+
+    // Generate tokens
+    const tokens = this.generateTokens(newUser);
+
+    // Return response without passwordHash
+    return {
+      ...tokens,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role,
+      },
+    };
   }
 }

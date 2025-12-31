@@ -33,6 +33,18 @@ export interface ApiKeyCredentials {
 }
 
 /**
+ * Register credentials
+ * @spec US-015
+ */
+export interface RegisterCredentials {
+  email: string;
+  password: string;
+  passwordConfirm: string;
+  name: string;
+  agreeToTerms: boolean;
+}
+
+/**
  * Auth response
  */
 export interface AuthResponse {
@@ -56,6 +68,17 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
  */
 export async function loginWithApiKey(credentials: ApiKeyCredentials): Promise<AuthResponse> {
   const response = await apiClient.post<AuthResponse>('/auth/api-key', credentials);
+  setAuthToken(response.accessToken);
+  setRefreshToken(response.refreshToken);
+  return response;
+}
+
+/**
+ * Register a new user
+ * @spec US-015
+ */
+export async function register(credentials: RegisterCredentials): Promise<AuthResponse> {
+  const response = await apiClient.post<AuthResponse>('/auth/register', credentials);
   setAuthToken(response.accessToken);
   setRefreshToken(response.refreshToken);
   return response;

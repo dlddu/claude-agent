@@ -13,7 +13,13 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { AuthService, TokenResponse, User } from './auth.service';
+import {
+  AuthService,
+  TokenResponse,
+  User,
+  RegisterDto,
+  RegisterResponse,
+} from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 interface LoginDto {
@@ -111,5 +117,15 @@ export class AuthController {
     // JWT tokens are stateless, so logout is handled client-side
     // by removing the tokens from storage
     return { success: true };
+  }
+
+  /**
+   * Register a new user
+   * @spec US-015
+   */
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  async register(@Body() registerDto: RegisterDto): Promise<RegisterResponse> {
+    return this.authService.register(registerDto);
   }
 }

@@ -280,6 +280,176 @@ test.describe('Auth API E2E', () => {
     });
   });
 
+  test.describe('POST /api/v1/auth/register', () => {
+    const generateUniqueEmail = () =>
+      `testuser-${Date.now()}-${Math.random().toString(36).substring(7)}@example.com`;
+
+    test('should register a new user with valid data', async ({ request }) => {
+      const email = generateUniqueEmail();
+      const response = await request.post(`${API_BASE}/auth/register`, {
+        data: {
+          email,
+          password: 'ValidPassword123!',
+          passwordConfirm: 'ValidPassword123!',
+          name: 'Test User',
+          agreeToTerms: true,
+        },
+      });
+
+      expect(response.status()).toBe(201);
+
+      const body = await response.json();
+      expect(body).toHaveProperty('accessToken');
+      expect(body).toHaveProperty('refreshToken');
+      expect(body).toHaveProperty('expiresIn');
+      expect(body).toHaveProperty('user');
+      expect(body.user.email).toBe(email);
+      expect(body.user.name).toBe('Test User');
+      expect(body.user.role).toBe('user');
+      expect(body.user).not.toHaveProperty('passwordHash');
+    });
+
+    test('should reject registration with existing email', async ({
+      request,
+    }) => {
+      const response = await request.post(`${API_BASE}/auth/register`, {
+        data: {
+          email: 'admin@example.com', // Already exists
+          password: 'ValidPassword123!',
+          passwordConfirm: 'ValidPassword123!',
+          name: 'Test User',
+          agreeToTerms: true,
+        },
+      });
+
+      expect(response.status()).toBe(500); // Error thrown
+      const body = await response.json();
+      expect(body.message).toContain('Email already registered');
+    });
+
+    test('should reject registration with mismatched passwords', async ({
+      request,
+    }) => {
+      const response = await request.post(`${API_BASE}/auth/register`, {
+        data: {
+          email: generateUniqueEmail(),
+          password: 'ValidPassword123!',
+          passwordConfirm: 'DifferentPassword123!',
+          name: 'Test User',
+          agreeToTerms: true,
+        },
+      });
+
+      expect(response.status()).toBe(500);
+      const body = await response.json();
+      expect(body.message).toContain('Passwords do not match');
+    });
+
+    test('should reject registration with weak password (too short)', async ({
+      request,
+    }) => {
+      const response = await request.post(`${API_BASE}/auth/register`, {
+        data: {
+          email: generateUniqueEmail(),
+          password: 'Weak1!',
+          passwordConfirm: 'Weak1!',
+          name: 'Test User',
+          agreeToTerms: true,
+        },
+      });
+
+      expect(response.status()).toBe(500);
+      const body = await response.json();
+      expect(body.message).toContain('Password must be at least 8 characters');
+    });
+
+    test('should reject registration with password without uppercase', async ({
+      request,
+    }) => {
+      const response = await request.post(`${API_BASE}/auth/register`, {
+        data: {
+          email: generateUniqueEmail(),
+          password: 'password123!',
+          passwordConfirm: 'password123!',
+          name: 'Test User',
+          agreeToTerms: true,
+        },
+      });
+
+      expect(response.status()).toBe(500);
+      const body = await response.json();
+      expect(body.message).toContain(
+        'Password must contain at least one uppercase letter',
+      );
+    });
+
+    test('should reject registration with password without special character', async ({
+      request,
+    }) => {
+      const response = await request.post(`${API_BASE}/auth/register`, {
+        data: {
+          email: generateUniqueEmail(),
+          password: 'Password123',
+          passwordConfirm: 'Password123',
+          name: 'Test User',
+          agreeToTerms: true,
+        },
+      });
+
+      expect(response.status()).toBe(500);
+      const body = await response.json();
+      expect(body.message).toContain(
+        'Password must contain at least one special character',
+      );
+    });
+
+    test('should reject registration without terms agreement', async ({
+      request,
+    }) => {
+      const response = await request.post(`${API_BASE}/auth/register`, {
+        data: {
+          email: generateUniqueEmail(),
+          password: 'ValidPassword123!',
+          passwordConfirm: 'ValidPassword123!',
+          name: 'Test User',
+          agreeToTerms: false,
+        },
+      });
+
+      expect(response.status()).toBe(500);
+      const body = await response.json();
+      expect(body.message).toContain(
+        'You must agree to the terms and conditions',
+      );
+    });
+
+    test('should allow login after registration', async ({ request }) => {
+      const email = generateUniqueEmail();
+      const password = 'ValidPassword123!';
+
+      // Register
+      const registerResponse = await request.post(`${API_BASE}/auth/register`, {
+        data: {
+          email,
+          password,
+          passwordConfirm: password,
+          name: 'Test User',
+          agreeToTerms: true,
+        },
+      });
+      expect(registerResponse.status()).toBe(201);
+
+      // Login with new account
+      const loginResponse = await request.post(`${API_BASE}/auth/login`, {
+        data: { email, password },
+      });
+      expect(loginResponse.ok()).toBeTruthy();
+
+      const loginBody = await loginResponse.json();
+      expect(loginBody.user.email).toBe(email);
+    });
+  });
+
   test.describe('Token Security', () => {
     test('tokens should be different on each login', async ({ request }) => {
       const login1 = await request.post(`${API_BASE}/auth/login`, {

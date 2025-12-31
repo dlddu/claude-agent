@@ -225,4 +225,135 @@ describe('AuthService', () => {
       expect(hash.startsWith('$2b$')).toBe(true);
     });
   });
+
+  describe('register', () => {
+    const validRegisterDto = {
+      email: 'newuser@example.com',
+      password: 'Password123!',
+      passwordConfirm: 'Password123!',
+      name: 'New User',
+      agreeToTerms: true,
+    };
+
+    beforeEach(() => {
+      mockJwtService.sign
+        .mockReturnValueOnce('access-token')
+        .mockReturnValueOnce('refresh-token');
+    });
+
+    it('should register a new user with valid data', async () => {
+      const result = await service.register(validRegisterDto);
+
+      expect(result).toHaveProperty('accessToken');
+      expect(result).toHaveProperty('refreshToken');
+      expect(result).toHaveProperty('user');
+      expect(result.user.email).toBe(validRegisterDto.email);
+      expect(result.user.name).toBe(validRegisterDto.name);
+      expect(result.user.role).toBe('user');
+      expect(result.user).not.toHaveProperty('passwordHash');
+    });
+
+    it('should throw error when email already exists', async () => {
+      await expect(
+        service.register({
+          ...validRegisterDto,
+          email: 'admin@example.com',
+        }),
+      ).rejects.toThrow('Email already registered');
+    });
+
+    it('should throw error when passwords do not match', async () => {
+      await expect(
+        service.register({
+          ...validRegisterDto,
+          passwordConfirm: 'DifferentPassword123!',
+        }),
+      ).rejects.toThrow('Passwords do not match');
+    });
+
+    it('should throw error when password is too short', async () => {
+      await expect(
+        service.register({
+          ...validRegisterDto,
+          password: 'Short1!',
+          passwordConfirm: 'Short1!',
+        }),
+      ).rejects.toThrow('Password must be at least 8 characters');
+    });
+
+    it('should throw error when password does not contain uppercase', async () => {
+      await expect(
+        service.register({
+          ...validRegisterDto,
+          password: 'password123!',
+          passwordConfirm: 'password123!',
+        }),
+      ).rejects.toThrow('Password must contain at least one uppercase letter');
+    });
+
+    it('should throw error when password does not contain lowercase', async () => {
+      await expect(
+        service.register({
+          ...validRegisterDto,
+          password: 'PASSWORD123!',
+          passwordConfirm: 'PASSWORD123!',
+        }),
+      ).rejects.toThrow('Password must contain at least one lowercase letter');
+    });
+
+    it('should throw error when password does not contain number', async () => {
+      await expect(
+        service.register({
+          ...validRegisterDto,
+          password: 'Password!!!',
+          passwordConfirm: 'Password!!!',
+        }),
+      ).rejects.toThrow('Password must contain at least one number');
+    });
+
+    it('should throw error when password does not contain special character', async () => {
+      await expect(
+        service.register({
+          ...validRegisterDto,
+          password: 'Password123',
+          passwordConfirm: 'Password123',
+        }),
+      ).rejects.toThrow('Password must contain at least one special character');
+    });
+
+    it('should throw error when terms are not agreed', async () => {
+      await expect(
+        service.register({
+          ...validRegisterDto,
+          agreeToTerms: false,
+        }),
+      ).rejects.toThrow('You must agree to the terms and conditions');
+    });
+
+    it('should allow login after registration', async () => {
+      // Register user
+      await service.register(validRegisterDto);
+
+      // Reset mocks for login
+      mockJwtService.sign
+        .mockReturnValueOnce('new-access-token')
+        .mockReturnValueOnce('new-refresh-token');
+
+      // Mock bcrypt.compare for the new password
+      (bcrypt.compare as jest.Mock).mockImplementation((password: string) => {
+        return Promise.resolve(
+          password === 'admin123' || password === 'Password123!',
+        );
+      });
+
+      // Login with the new user
+      const loginResult = await service.login(
+        validRegisterDto.email,
+        validRegisterDto.password,
+      );
+
+      expect(loginResult).toHaveProperty('accessToken');
+      expect(loginResult).toHaveProperty('refreshToken');
+    });
+  });
 });
