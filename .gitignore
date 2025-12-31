@@ -38,3 +38,4 @@ Thumbs.db
 # Prisma
 packages/backend/prisma/*.db
 packages/backend/prisma/*.db-journal
+test-results/
