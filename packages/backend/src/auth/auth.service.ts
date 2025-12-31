@@ -48,7 +48,7 @@ export class AuthService {
         role: 'admin',
         // Password: "admin123" - Only for development
         passwordHash:
-          '$2b$10$K.0HwpsoPDGaB/atFBmmXOGTw4ceeg33.WrxJx/FeDjZl3.k0Ci5.',
+          '$2b$10$H7pxF2kqPRhSeiR8s20mNOt4/mf777mZpKwsNyEdfi5Dq/XtoLhOW',
       },
     ],
   ]);
