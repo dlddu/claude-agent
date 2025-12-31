@@ -307,7 +307,7 @@ Phase 1은 Claude Agent Service의 기반을 구축하는 단계입니다.
 
 | Story ID | Spec ID | Status |
 |----------|---------|--------|
-| US-015 | UI-004 (REQ-4) | ⏳ 대기 |
+| US-015 | UI-004 (REQ-4) | ✅ 구현됨 |
 | US-001 | UI-004 (REQ-4) | ✅ 구현됨 |
 | US-002 | UI-004 (REQ-4) | ✅ 구현됨 |
 | US-003 | UI-004 (REQ-1, REQ-2, REQ-3) | ✅ 구현됨 |
@@ -331,3 +331,4 @@ Phase 1은 Claude Agent Service의 기반을 구축하는 단계입니다.
 |------|--------|-------------|
 | 2025-12-31 | Claude | Initial creation - Phase 1 user stories |
 | 2025-12-31 | Claude | US-015 회원 가입 스토리 추가 |
+| 2025-12-31 | Claude | US-015 회원 가입 기능 구현 완료 |

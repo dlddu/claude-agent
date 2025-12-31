@@ -18,15 +18,15 @@
 | 구분 | 개수 | 비율 |
 |-----|-----|------|
 | 전체 스토리 | 15 | 100% |
-| 테스트 커버리지 있음 | 11 | 73% |
-| 테스트 미작성 | 4 | 27% |
+| 테스트 커버리지 있음 | 12 | 80% |
+| 테스트 미작성 | 3 | 20% |
 
 ### Coverage by Story
 
 | Status | Story IDs |
 |--------|-----------|
-| ✅ 완료 | US-001, US-002, US-003, US-004, US-007, US-009, US-010, US-011, US-012, US-013 |
-| ❌ 미작성 | US-005, US-006, US-008, US-015 |
+| ✅ 완료 | US-001, US-002, US-003, US-004, US-007, US-009, US-010, US-011, US-012, US-013, US-015 |
+| ❌ 미작성 | US-005, US-006, US-008 |
 | 🔧 CI/CD | US-014 |
 
 ---
@@ -38,10 +38,11 @@
 | File | Spec Reference | Description |
 |------|----------------|-------------|
 | [login.spec.ts](../../e2e/tests/login.spec.ts) | UI-004 | 로그인 페이지 UI 테스트 |
+| [register.spec.ts](../../e2e/tests/register.spec.ts) | UI-004, US-015 | 회원 가입 페이지 UI 테스트 |
 | [navigation.spec.ts](../../e2e/tests/navigation.spec.ts) | UI-004 | 네비게이션 및 라우팅 테스트 |
 | [ui-components.spec.ts](../../e2e/tests/ui-components.spec.ts) | UI-004 | UI 컴포넌트, 반응형, 키보드 접근성 |
 | [health.spec.ts](../../e2e/tests/health.spec.ts) | INFRA-001 | 프론트엔드/백엔드 헬스체크 |
-| [auth-api.spec.ts](../../e2e/tests/auth-api.spec.ts) | FEAT-001 REQ-4 | 인증 API E2E 테스트 |
+| [auth-api.spec.ts](../../e2e/tests/auth-api.spec.ts) | FEAT-001 REQ-4, US-015 | 인증 API E2E 테스트 (회원가입 포함) |
 | [execution-api.spec.ts](../../e2e/tests/execution-api.spec.ts) | FEAT-002, API-001~004 | 실행 API E2E 테스트 |
 
 ### Unit Tests
@@ -319,15 +320,22 @@
 
 | Acceptance Criteria | Test File | Test Case | Line |
 |---------------------|-----------|-----------|------|
-| 이메일, 비밀번호, 이름을 입력하여 회원 가입할 수 있다 | - | - | - |
-| 비밀번호 강도 요구사항(최소 길이, 특수문자 등)이 안내된다 | - | - | - |
-| 비밀번호 확인 필드로 오타를 방지할 수 있다 | - | - | - |
-| 이미 가입된 이메일인 경우 명확한 안내 메시지가 표시된다 | - | - | - |
-| 가입 완료 후 이메일 인증 안내를 받을 수 있다 | - | - | - |
-| 이용약관 및 개인정보처리방침에 동의할 수 있다 | - | - | - |
-| 회원 가입 성공 시 자동으로 로그인되거나 로그인 페이지로 이동된다 | - | - | - |
+| 이메일, 비밀번호, 이름을 입력하여 회원 가입할 수 있다 | [auth-api.spec.ts](../../e2e/tests/auth-api.spec.ts) | should register a new user with valid data | 287-310 |
+| 이메일, 비밀번호, 이름을 입력하여 회원 가입할 수 있다 | [auth.service.spec.ts](../../packages/backend/src/auth/auth.service.spec.ts) | should register a new user with valid data | 244-254 |
+| 이메일, 비밀번호, 이름을 입력하여 회원 가입할 수 있다 | [register.spec.ts](../../e2e/tests/register.spec.ts) | should display register form with all required fields | 28-49 |
+| 비밀번호 강도 요구사항(최소 길이, 특수문자 등)이 안내된다 | [auth.service.spec.ts](../../packages/backend/src/auth/auth.service.spec.ts) | should throw error when password is too short/missing chars | 274-322 |
+| 비밀번호 강도 요구사항(최소 길이, 특수문자 등)이 안내된다 | [register.spec.ts](../../e2e/tests/register.spec.ts) | should show password strength indicator | 66-74 |
+| 비밀번호 확인 필드로 오타를 방지할 수 있다 | [auth.service.spec.ts](../../packages/backend/src/auth/auth.service.spec.ts) | should throw error when passwords do not match | 265-272 |
+| 비밀번호 확인 필드로 오타를 방지할 수 있다 | [register.spec.ts](../../e2e/tests/register.spec.ts) | should show validation error for mismatched passwords | 84-101 |
+| 이미 가입된 이메일인 경우 명확한 안내 메시지가 표시된다 | [auth.service.spec.ts](../../packages/backend/src/auth/auth.service.spec.ts) | should throw error when email already exists | 256-263 |
+| 이미 가입된 이메일인 경우 명확한 안내 메시지가 표시된다 | [auth-api.spec.ts](../../e2e/tests/auth-api.spec.ts) | should reject registration with existing email | 312-328 |
+| 가입 완료 후 이메일 인증 안내를 받을 수 있다 | - | (향후 구현 예정) | - |
+| 이용약관 및 개인정보처리방침에 동의할 수 있다 | [auth.service.spec.ts](../../packages/backend/src/auth/auth.service.spec.ts) | should throw error when terms are not agreed | 324-331 |
+| 이용약관 및 개인정보처리방침에 동의할 수 있다 | [register.spec.ts](../../e2e/tests/register.spec.ts) | should show validation error when terms not agreed | 103-123 |
+| 회원 가입 성공 시 자동으로 로그인되거나 로그인 페이지로 이동된다 | [auth-api.spec.ts](../../e2e/tests/auth-api.spec.ts) | should allow login after registration | 426-450 |
+| 회원 가입 성공 시 자동으로 로그인되거나 로그인 페이지로 이동된다 | [auth.service.spec.ts](../../packages/backend/src/auth/auth.service.spec.ts) | should allow login after registration | 333-357 |
 
-**Coverage**: ❌ 미작성
+**Coverage**: ✅ 완료 (이메일 인증 제외)
 
 ---
 
@@ -337,7 +345,6 @@
 
 | Priority | Story ID | 스토리 | Acceptance Criteria 수 | 필요한 작업 |
 |----------|----------|-------|----------------------|------------|
-| P0 | US-015 | 회원 가입 | 7개 | 회원가입 UI 및 API 테스트 전체 작성 필요 |
 | P2 | US-005 | 다크 모드 | 4개 | 테마 전환 E2E 테스트 전체 작성 필요 |
 | P2 | US-006 | 실시간 알림 | 4개 | 토스트/알림 컴포넌트 테스트 전체 작성 필요 |
 | P2 | US-008 | 로딩 피드백 | 4개 | 로딩 상태 UI 테스트 전체 작성 필요 |
@@ -379,3 +386,4 @@ pnpm test
 |------|--------|-------------|
 | 2025-12-31 | Claude | Initial creation - Phase 1 test mapping document |
 | 2025-12-31 | Claude | Update Acceptance Criteria to match STORIES-PHASE1.md exactly |
+| 2025-12-31 | Claude | US-015 회원 가입 테스트 매핑 추가 및 커버리지 업데이트 |
