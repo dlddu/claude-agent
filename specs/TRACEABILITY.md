@@ -192,6 +192,7 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 ### Phase 1: Foundation
 | Story ID | 제목 | 관련 Spec | 상태 |
 |----------|------|----------|------|
+| [US-015](./stories/STORIES-PHASE1.md#us-015-회원-가입) | 회원 가입 | UI-004 | ⏳ 대기 |
 | [US-001](./stories/STORIES-PHASE1.md#us-001-안전한-로그인) | 안전한 로그인 | UI-004 | ✅ 구현됨 |
 | [US-002](./stories/STORIES-PHASE1.md#us-002-자동-로그아웃-및-세션-관리) | 자동 로그아웃 및 세션 관리 | UI-004 | ✅ 구현됨 |
 | [US-003](./stories/STORIES-PHASE1.md#us-003-직관적인-네비게이션) | 직관적인 네비게이션 | UI-004 | ✅ 구현됨 |
@@ -237,3 +238,4 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 | 2025-12-29 | INFRA-001 | CI 강화: kubeconform K8s 검증, Kind 클러스터 통합 테스트, LocalStack S3 통합 테스트 | Claude |
 | 2025-12-31 | INFRA-001, FEAT-002 | E2E 테스트에 K8s 통합 추가: Kind 클러스터 및 LocalStack 구성, test.fixme를 활성화된 K8s 라이프사이클 테스트로 변경 | Claude |
 | 2025-12-31 | US-001~014 | Phase 1 사용자 스토리 작성 (FEAT-001, DATA-001, INFRA-001, UI-004 기반 14개 스토리) | Claude |
+| 2025-12-31 | US-015 | 회원 가입 사용자 스토리 추가 | Claude |
