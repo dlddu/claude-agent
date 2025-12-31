@@ -1,0 +1,68 @@
+# Backend Deployment
+# @spec FEAT-001 REQ-2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-agent-backend
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: claude-agent
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: claude-agent
+        app.kubernetes.io/component: backend
+    spec:
+      serviceAccountName: claude-agent-backend
+      containers:
+        - name: backend
+          image: ghcr.io/claude-agent/backend:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3001
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: claude-agent-config
+            - secretRef:
+                name: claude-agent-secret
+          env:
+            - name: PORT
+              value: "3001"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+      restartPolicy: Always

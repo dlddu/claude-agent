@@ -41,27 +41,27 @@
 ## Requirements
 
 ### REQ-1: Monorepo Structure
-- [ ] 프론트엔드와 백엔드를 단일 레포지토리에서 관리
-- [ ] 패키지 매니저로 pnpm workspace 사용
-- [ ] 공통 타입, 유틸리티를 shared 패키지로 분리
+- [x] 프론트엔드와 백엔드를 단일 레포지토리에서 관리
+- [x] 패키지 매니저로 pnpm workspace 사용
+- [x] 공통 타입, 유틸리티를 shared 패키지로 분리
 
 ### REQ-2: Kubernetes Environment
-- [ ] 모든 서비스는 K8s에서 실행
-- [ ] Frontend, Backend는 Deployment로 배포
-- [ ] Agent는 K8s Job으로 실행
-- [ ] ConfigMap과 Secret을 통한 설정 관리
+- [x] 모든 서비스는 K8s에서 실행 (k8s/base/*.yaml)
+- [x] Frontend, Backend는 Deployment로 배포 (k8s/base/*-deployment.yaml)
+- [x] Agent는 K8s Job으로 실행 (K8sService, agent-job-template.yaml)
+- [x] ConfigMap과 Secret을 통한 설정 관리 (k8s/base/configmap.yaml, secret.yaml)
 
 ### REQ-3: Service Communication
-- [ ] Frontend → Backend: REST API (HTTP/HTTPS)
-- [ ] Backend → K8s API: Service Account 기반 인증
-- [ ] Backend → PostgreSQL: Connection Pool
-- [ ] Agent Job → S3: AWS SDK
+- [x] Frontend → Backend: REST API (HTTP/HTTPS) (packages/frontend/src/lib/api.ts)
+- [x] Backend → K8s API: Service Account 기반 인증 (packages/backend/src/k8s/k8s.service.ts)
+- [x] Backend → PostgreSQL: Connection Pool (packages/backend/src/prisma/prisma.service.ts)
+- [x] Agent Job → S3: AWS SDK (packages/backend/src/s3/s3.service.ts)
 
 ### REQ-4: Security
-- [ ] API 인증을 위한 JWT 또는 API Key 지원
-- [ ] K8s RBAC을 통한 권한 관리
-- [ ] Secret 관리를 위한 K8s Secret 활용
-- [ ] S3 접근을 위한 IAM Role 또는 Access Key
+- [x] API 인증을 위한 JWT 또는 API Key 지원 (packages/backend/src/auth/)
+- [x] K8s RBAC을 통한 권한 관리 (k8s/base/rbac.yaml)
+- [x] Secret 관리를 위한 K8s Secret 활용 (k8s/base/secret.yaml)
+- [x] S3 접근을 위한 IAM Role 또는 Access Key (S3Service with AWS credentials)
 
 ## Directory Structure
 
@@ -113,13 +113,13 @@ claude-agent/
 
 ## Verification Criteria
 
-- [ ] 모노레포 구조가 올바르게 설정됨
-- [ ] pnpm workspace가 정상 동작함
-- [ ] 모든 서비스가 K8s에 배포 가능함
-- [ ] Frontend에서 Backend API 호출이 정상 동작함
-- [ ] Backend에서 K8s Job 생성이 가능함
-- [ ] PostgreSQL 연결이 정상 동작함
-- [ ] S3 업로드/다운로드가 정상 동작함
+- [x] 모노레포 구조가 올바르게 설정됨 (pnpm-workspace.yaml, packages/*)
+- [x] pnpm workspace가 정상 동작함 (CI 빌드 통과)
+- [x] 모든 서비스가 K8s에 배포 가능함 (k8s/base/, Kind 통합 테스트)
+- [x] Frontend에서 Backend API 호출이 정상 동작함 (packages/frontend/src/lib/api.ts)
+- [x] Backend에서 K8s Job 생성이 가능함 (K8sService 구현)
+- [x] PostgreSQL 연결이 정상 동작함 (PrismaService, 통합 테스트)
+- [x] S3 업로드/다운로드가 정상 동작함 (S3Service, LocalStack 통합 테스트)
 
 ## Related Specs
 
@@ -133,3 +133,7 @@ claude-agent/
 | Date | Author | Description |
 |------|--------|-------------|
 | 2025-12-26 | System | Initial creation |
+| 2025-12-29 | Claude | REQ-2 구현: K8s manifests 생성 (Namespace, ConfigMap, Secret, Deployments, Services, RBAC, Job Template) |
+| 2025-12-29 | Claude | REQ-3 구현: K8sService (@kubernetes/client-node), S3Service (@aws-sdk/client-s3) |
+| 2025-12-29 | Claude | REQ-4 구현: AuthModule (JWT, API Key, Passport), RBAC manifests |
+| 2025-12-29 | Claude | CI 강화: kubeconform 검증, Kind 클러스터 테스트, LocalStack S3 테스트 |

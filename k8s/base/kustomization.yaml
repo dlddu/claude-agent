@@ -1,0 +1,20 @@
+# Kustomization for Claude Agent Service
+# @spec FEAT-001 REQ-2
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: claude-agent
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - rbac.yaml
+  - backend-deployment.yaml
+  - backend-service.yaml
+  - frontend-deployment.yaml
+  - frontend-service.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: claude-agent
+  app.kubernetes.io/version: "0.1.0"

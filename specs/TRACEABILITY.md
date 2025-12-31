@@ -25,7 +25,7 @@
 ### Feature Unit 1: System Foundation
 | Spec | Type | 구현 파일 | 테스트 파일 | 상태 |
 |------|------|----------|------------|------|
-| [FEAT-001](./features/FEAT-001.md) | Backend | packages/*, package.json, turbo.json | - | ✅ 완료 |
+| [FEAT-001](./features/FEAT-001.md) | Backend | packages/*, k8s/base/*, packages/backend/src/k8s/*, packages/backend/src/auth/*, packages/backend/src/s3/* | packages/backend/src/k8s/k8s.service.spec.ts, packages/backend/src/auth/auth.service.spec.ts, packages/backend/src/s3/s3.service.spec.ts | ✅ 완료 |
 | [UI-004](./ui/UI-004.md) | Frontend | packages/frontend/src/components/*, packages/frontend/src/contexts/*, packages/frontend/src/hooks/*, packages/frontend/src/lib/*, packages/frontend/src/app/* | packages/frontend/src/__tests__/* | ✅ 완료 |
 | [DATA-001](./data/DATA-001.md) | Database | packages/backend/prisma/schema.prisma, packages/shared/src/types/*.ts | - | ✅ 완료 |
 | [INFRA-001](./infra/INFRA-001.md) | Infra | .github/workflows/*.yml, packages/*/Dockerfile | e2e/tests/*.spec.ts | ✅ 완료 |
@@ -61,7 +61,7 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 비고 |
 |---------|----------|----------|------------|------|------|
-| [FEAT-001](./features/FEAT-001.md) | System Architecture | packages/*, package.json, turbo.json | - | ✅ 완료 | 모노레포 구조 구현 및 빌드 검증 완료 |
+| [FEAT-001](./features/FEAT-001.md) | System Architecture | packages/*, k8s/base/*, packages/backend/src/k8s/*, packages/backend/src/auth/*, packages/backend/src/s3/* | k8s.service.spec.ts, auth.service.spec.ts, s3.service.spec.ts | ✅ 완료 | 모노레포, K8s manifests, K8s/Auth/S3 서비스 구현 완료 |
 | [FEAT-002](./features/FEAT-002.md) | Agent Execution Management | packages/backend/src/execution/*.ts, packages/backend/src/prisma/*.ts | Unit: execution.service.spec.ts, Integration: test/execution.integration.spec.ts, E2E: e2e/tests/execution-api.spec.ts | ✅ 완료 | ExecutionService, Controller 구현 완료, 통합/E2E 테스트 추가 |
 | [FEAT-003](./features/FEAT-003.md) | Execution History Management | - | - | ⏳ 대기 | PostgreSQL 히스토리 저장, UI-002와 함께 구현 |
 | [FEAT-004](./features/FEAT-004.md) | Artifact Management | - | - | ⏳ 대기 | S3 아티팩트 관리, UI-003과 함께 구현 |
@@ -208,3 +208,8 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 | 2025-12-28 | INFRA-001 | REQ-6 추가: Multi-Platform Docker Build (ARM64 지원) 명세 및 구현 | Claude |
 | 2025-12-28 | FEAT-002, API-001~004 | 실행 관리 백엔드 구현 (ExecutionService, Controller, PrismaModule, 22개 테스트) | Claude |
 | 2025-12-28 | FEAT-002, API-001~004 | Integration 테스트 추가 (20개), E2E API 테스트 추가 (15개) | Claude |
+| 2025-12-29 | FEAT-001 | K8s manifests 구현 (Namespace, ConfigMap, Secret, Deployments, Services, RBAC, Job Template) | Claude |
+| 2025-12-29 | FEAT-001 | K8sService 구현 (@kubernetes/client-node, Job 생성/조회/삭제/로그) | Claude |
+| 2025-12-29 | FEAT-001 | AuthModule 구현 (JWT, API Key, Passport strategies, Guards) | Claude |
+| 2025-12-29 | FEAT-001 | S3Service 구현 (@aws-sdk/client-s3, upload/download/delete/presigned URLs) | Claude |
+| 2025-12-29 | INFRA-001 | CI 강화: kubeconform K8s 검증, Kind 클러스터 통합 테스트, LocalStack S3 통합 테스트 | Claude |

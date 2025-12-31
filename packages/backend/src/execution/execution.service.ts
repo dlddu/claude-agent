@@ -13,7 +13,6 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   CreateExecutionDto,
@@ -60,7 +59,7 @@ export class ExecutionService {
         prompt: dto.prompt,
         model: dto.model ?? DEFAULTS.model,
         maxTokens: dto.maxTokens ?? DEFAULTS.maxTokens,
-        metadata: (dto.metadata ?? {}) as Prisma.InputJsonValue,
+        metadata: (dto.metadata as object | undefined) ?? undefined,
         status: 'PENDING',
         jobName,
         isPermanent: false,
@@ -143,17 +142,20 @@ export class ExecutionService {
       this.prisma.execution.count({ where }),
     ]);
 
-    const items: ExecutionSummary[] = executions.map((e) => ({
-      id: e.id,
-      prompt: e.prompt.substring(0, 200) + (e.prompt.length > 200 ? '...' : ''),
-      model: e.model,
-      status: e.status as ExecutionStatus,
-      createdAt: e.createdAt,
-      completedAt: e.completedAt ?? undefined,
-      tokensUsed: e.tokensUsed ?? undefined,
-      estimatedCost: e.estimatedCost ? Number(e.estimatedCost) : undefined,
-      artifactCount: e._count.artifacts,
-    }));
+    const items: ExecutionSummary[] = executions.map(
+      (e: (typeof executions)[number]) => ({
+        id: e.id,
+        prompt:
+          e.prompt.substring(0, 200) + (e.prompt.length > 200 ? '...' : ''),
+        model: e.model,
+        status: e.status as ExecutionStatus,
+        createdAt: e.createdAt,
+        completedAt: e.completedAt ?? undefined,
+        tokensUsed: e.tokensUsed ?? undefined,
+        estimatedCost: e.estimatedCost ? Number(e.estimatedCost) : undefined,
+        artifactCount: e._count.artifacts,
+      }),
+    );
 
     return {
       success: true,

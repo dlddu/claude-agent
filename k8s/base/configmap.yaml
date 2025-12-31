@@ -1,0 +1,36 @@
+# ConfigMap for Claude Agent Service
+# @spec FEAT-001 REQ-2
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-agent-config
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+data:
+  # Application settings
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+
+  # Backend settings
+  BACKEND_PORT: "3001"
+  BACKEND_HOST: "0.0.0.0"
+
+  # Frontend settings
+  FRONTEND_PORT: "3000"
+  NEXT_PUBLIC_API_URL: "http://claude-agent-backend:3001"
+
+  # Database settings (non-sensitive)
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_NAME: "claude_agent"
+
+  # S3 settings (non-sensitive)
+  S3_REGION: "ap-northeast-2"
+  S3_BUCKET: "claude-agent-artifacts"
+
+  # Agent settings
+  AGENT_IMAGE: "ghcr.io/claude-agent/agent:latest"
+  AGENT_TIMEOUT: "3600"
+  AGENT_MEMORY_LIMIT: "2Gi"
+  AGENT_CPU_LIMIT: "1000m"
