@@ -9,6 +9,8 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import { ExecutionList, ExecutionFilters } from '@/components/executions';
 import { useExecutions } from '@/hooks/executions';
 import type { ExecutionFilter } from '@/services/executionApi';
@@ -40,7 +42,9 @@ export default function ExecutionsPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <AuthGuard>
+      <MainLayout>
+        <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -70,6 +74,8 @@ export default function ExecutionsPage() {
         onPageChange={handlePageChange}
         onRefresh={refetch}
       />
-    </div>
+        </div>
+      </MainLayout>
+    </AuthGuard>
   );
 }
