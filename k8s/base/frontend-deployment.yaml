@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/claude-agent/frontend:latest
+          image: ghcr.io/claude-agent/frontend:main
           imagePullPolicy: Always
           ports:
             - name: http
