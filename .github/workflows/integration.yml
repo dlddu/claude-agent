@@ -4,7 +4,6 @@ name: Integration
 
 on:
   push:
-    branches: [main, 'claude/**']
   workflow_dispatch:
     inputs:
       run_e2e:
