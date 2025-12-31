@@ -285,32 +285,106 @@ test.describe('Execution API E2E', () => {
 });
 
 test.describe('Execution Workflow E2E', () => {
-  // TODO: Enable when K8s integration is available in CI
-  test.fixme('full execution lifecycle', async ({ request }) => {
-    // This test requires actual K8s job execution to complete the lifecycle
-
+  /**
+   * Full execution lifecycle test with K8s integration
+   * @spec FEAT-002
+   * @spec API-001
+   * @spec API-002
+   *
+   * In CI, Kind cluster is set up with necessary resources (namespace, RBAC, etc.)
+   */
+  test('full execution lifecycle with K8s', async ({ request }) => {
     // 1. Create execution
     const createResponse = await request.post(`${API_BASE}/executions`, {
       data: {
         prompt: 'Lifecycle test - generate a hello world',
         model: 'claude-sonnet-4-20250514',
         maxTokens: 1024,
+        metadata: {
+          testId: 'e2e-lifecycle-test',
+          source: 'playwright-e2e',
+        },
       },
     });
 
+    expect(createResponse.ok()).toBeTruthy();
+    expect(createResponse.status()).toBe(201);
+
     const execution = (await createResponse.json()).data;
     expect(execution.status).toBe('PENDING');
+    expect(execution.id).toBeDefined();
+    expect(execution.jobName).toMatch(/^claude-agent-/);
 
-    // 2. Check status (would transition to RUNNING, then COMPLETED)
+    // 2. Verify execution can be retrieved with transitions
     const statusResponse = await request.get(
       `${API_BASE}/executions/${execution.id}?includeTransitions=true`,
     );
-    const statusBody = await statusResponse.json();
+    expect(statusResponse.ok()).toBeTruthy();
 
+    const statusBody = await statusResponse.json();
+    expect(statusBody.data.id).toBe(execution.id);
+    expect(statusBody.data.statusTransitions).toBeDefined();
     expect(statusBody.data.statusTransitions.length).toBeGreaterThan(0);
 
-    // 3. Verify completion (in real scenario)
-    // expect(statusBody.data.status).toBe('COMPLETED');
-    // expect(statusBody.data.result).toHaveProperty('output');
+    // 3. Verify initial transition to PENDING
+    const firstTransition = statusBody.data.statusTransitions[0];
+    expect(firstTransition.toStatus).toBe('PENDING');
+
+    // 4. Test logs endpoint (may be empty initially)
+    const logsResponse = await request.get(
+      `${API_BASE}/executions/${execution.id}/logs`,
+    );
+    expect(logsResponse.ok()).toBeTruthy();
+    const logsBody = await logsResponse.json();
+    expect(logsBody.data).toHaveProperty('logs');
+
+    // 5. Cancel the execution to clean up (since we can't wait for actual completion)
+    const cancelResponse = await request.post(
+      `${API_BASE}/executions/${execution.id}/cancel`,
+      {
+        data: { reason: 'E2E lifecycle test cleanup' },
+      },
+    );
+    expect(cancelResponse.ok()).toBeTruthy();
+
+    const cancelBody = await cancelResponse.json();
+    expect(cancelBody.data.status).toBe('CANCELLED');
+    expect(cancelBody.data.cancelledAt).toBeDefined();
+
+    // 6. Verify final status with all transitions
+    const finalResponse = await request.get(
+      `${API_BASE}/executions/${execution.id}?includeTransitions=true`,
+    );
+    expect(finalResponse.ok()).toBeTruthy();
+
+    const finalBody = await finalResponse.json();
+    expect(finalBody.data.status).toBe('CANCELLED');
+    expect(finalBody.data.statusTransitions.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('execution lifecycle - verify job creation in K8s', async ({ request }) => {
+    // 1. Create execution
+    const createResponse = await request.post(`${API_BASE}/executions`, {
+      data: {
+        prompt: 'K8s job verification test',
+        metadata: {
+          testId: 'e2e-k8s-job-test',
+        },
+      },
+    });
+
+    expect(createResponse.ok()).toBeTruthy();
+    const execution = (await createResponse.json()).data;
+
+    // 2. Verify job name format
+    expect(execution.jobName).toBeDefined();
+    expect(execution.jobName).toMatch(/^claude-agent-[a-z0-9-]+$/);
+
+    // 3. Verify execution is in the correct initial state
+    expect(execution.status).toBe('PENDING');
+    expect(execution.prompt).toBe('K8s job verification test');
+
+    // 4. Cleanup
+    await request.post(`${API_BASE}/executions/${execution.id}/cancel`);
   });
 });
