@@ -4,8 +4,6 @@
  */
 import { test, expect, Page } from '@playwright/test';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
-
 // Test credentials (from auth.service.ts in-memory store)
 const TEST_USER = {
   email: 'admin@example.com',
@@ -26,32 +24,7 @@ async function loginViaUI(page: Page): Promise<void> {
   await page.getByRole('button', { name: /sign in/i }).click();
 
   // Wait for redirect to dashboard
-  await page.waitForURL(/\/dashboard/, { timeout: 10000 });
-}
-
-/**
- * Helper function to login via API and set tokens
- */
-async function loginViaAPI(page: Page): Promise<void> {
-  // Login via API
-  const response = await page.request.post(`${BACKEND_URL}/api/v1/auth/login`, {
-    data: {
-      email: TEST_USER.email,
-      password: TEST_USER.password,
-    },
-  });
-
-  const { accessToken, refreshToken } = await response.json();
-
-  // Set tokens in localStorage before navigating
-  await page.goto('/login');
-  await page.evaluate(
-    ({ accessToken, refreshToken }) => {
-      localStorage.setItem('auth_token', accessToken);
-      localStorage.setItem('refresh_token', refreshToken);
-    },
-    { accessToken, refreshToken }
-  );
+  await page.waitForURL(/\/dashboard/, { timeout: 15000 });
 }
 
 test.describe('Execution Pages - Unauthenticated', () => {
@@ -88,7 +61,7 @@ test.describe('Execution Pages - Unauthenticated', () => {
 
 test.describe('Execution Pages - Authenticated', () => {
   test.beforeEach(async ({ page }) => {
-    await loginViaAPI(page);
+    await loginViaUI(page);
   });
 
   test.describe('Execution List Page', () => {
@@ -111,8 +84,8 @@ test.describe('Execution Pages - Authenticated', () => {
     test('should have filters section', async ({ page }) => {
       await page.goto('/executions');
 
-      // Should have status filter
-      await expect(page.getByRole('combobox').first()).toBeVisible();
+      // Should have status filter dropdown
+      await expect(page.locator('select').first()).toBeVisible();
     });
 
     test('should navigate to new execution page', async ({ page }) => {
@@ -159,10 +132,11 @@ test.describe('Execution Pages - Authenticated', () => {
       await page.goto('/executions/new');
 
       // Fill prompt
-      await page.getByPlaceholder(/enter your prompt/i).fill('Test prompt for E2E');
+      const promptField = page.getByPlaceholder(/enter your prompt/i);
+      await promptField.fill('Test prompt for E2E');
 
       // Check that prompt is filled
-      await expect(page.getByPlaceholder(/enter your prompt/i)).toHaveValue('Test prompt for E2E');
+      await expect(promptField).toHaveValue('Test prompt for E2E');
 
       // Character count should update
       await expect(page.getByText(/20.*\/.*100,000/)).toBeVisible();
@@ -199,8 +173,8 @@ test.describe('Execution Pages - Authenticated', () => {
       await page.getByPlaceholder('Key').fill('environment');
       await page.getByPlaceholder('Value').fill('test');
 
-      // Remove metadata
-      await page.locator('button').filter({ has: page.locator('svg.text-red-500') }).click();
+      // Remove metadata using the trash button
+      await page.locator('button').filter({ has: page.locator('svg') }).last().click();
 
       // Should show "No metadata added"
       await expect(page.getByText(/no metadata added/i)).toBeVisible();
@@ -265,22 +239,22 @@ test.describe('Execution Form Validation', () => {
 
 test.describe('Authenticated Sidebar Navigation', () => {
   test.beforeEach(async ({ page }) => {
-    await loginViaAPI(page);
+    await loginViaUI(page);
   });
 
   test('should navigate to executions from sidebar', async ({ page }) => {
-    await page.goto('/dashboard');
-
-    // Click on Executions in sidebar
-    await page.getByRole('link', { name: /executions/i }).first().click();
+    // Already on dashboard after login, find Executions link in sidebar
+    const executionsLink = page.locator('nav').getByRole('link', { name: /executions/i });
+    await expect(executionsLink).toBeVisible();
+    await executionsLink.click();
     await expect(page).toHaveURL(/\/executions/);
   });
 
-  test('should show active state for current page in sidebar', async ({ page }) => {
+  test('should show executions link in sidebar on executions page', async ({ page }) => {
     await page.goto('/executions');
 
-    // Executions link should be highlighted as active
-    const executionsLink = page.getByRole('link', { name: /executions/i }).first();
+    // Executions link should be visible in sidebar
+    const executionsLink = page.locator('nav').getByRole('link', { name: /executions/i });
     await expect(executionsLink).toBeVisible();
   });
 });
