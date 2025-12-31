@@ -279,7 +279,10 @@ describe('S3Service (Integration)', () => {
       expect(url).toBeDefined();
       expect(typeof url).toBe('string');
       expect(url).toMatch(/^https?:\/\//);
-      expect(url).toContain(testKey.replace(/\//g, '%2F'));
+      // URL may contain path-style (slashes) or virtual-hosted style (encoded slashes)
+      const containsKey =
+        url.includes(testKey) || url.includes(testKey.replace(/\//g, '%2F'));
+      expect(containsKey).toBe(true);
     });
 
     it('should generate presigned download URL with custom expiry', async () => {
