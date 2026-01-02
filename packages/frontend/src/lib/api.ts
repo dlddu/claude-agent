@@ -61,7 +61,7 @@ export function redirectToLogin(): void {
  */
 function createApiClient(): AxiosInstance {
   const client = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
+    baseURL: process.env.NEXT_PUBLIC_API_URL || '/api/v1',
     timeout: 30000,
     headers: {
       'Content-Type': 'application/json',
@@ -92,7 +92,7 @@ function createApiClient(): AxiosInstance {
         if (refreshToken) {
           try {
             const response = await axios.post<{ accessToken: string }>(
-              `${process.env.NEXT_PUBLIC_API_URL || '/api'}/auth/refresh`,
+              `${process.env.NEXT_PUBLIC_API_URL || '/api/v1'}/auth/refresh`,
               { refreshToken }
             );
             setAuthToken(response.data.accessToken);
