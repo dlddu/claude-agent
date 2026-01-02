@@ -255,17 +255,9 @@ test.describe('Registration E2E Flow', () => {
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
 
     // 3. Logout (find logout button in user menu)
-    const userMenuButton = page.locator('[data-testid="user-menu"]').or(
-      page.getByRole('button', { name: /user|profile|account/i })
-    );
-
-    if (await userMenuButton.isVisible()) {
-      await userMenuButton.click();
-      await page.getByRole('menuitem', { name: /logout|sign out/i }).click();
-    } else {
-      // Fallback: directly navigate to login (simulating logout)
-      await page.goto('/login');
-    }
+    const userMenuButton = page.locator('[data-testid="user-menu"]');
+    await userMenuButton.click();
+    await page.getByRole('button', { name: /sign out/i }).click();
 
     // 4. Should be redirected to login
     await expect(page).toHaveURL(/\/login/, { timeout: 5000 });

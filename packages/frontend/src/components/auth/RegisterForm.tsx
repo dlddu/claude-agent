@@ -201,7 +201,11 @@ export function RegisterForm() {
       router.push('/dashboard');
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Registration failed';
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err
+            ? (err as { message: string }).message
+            : 'Registration failed';
       showError('Registration failed', { description: message });
     } finally {
       setIsLoading(false);
