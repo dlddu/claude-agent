@@ -34,7 +34,7 @@
 | Spec | Type | 구현 파일 | 테스트 파일 | 상태 |
 |------|------|----------|------------|------|
 | [FEAT-002](./specs/features/FEAT-002.md) | Backend | packages/backend/src/execution/*.ts, packages/backend/src/prisma/*.ts | packages/backend/src/execution/execution.service.spec.ts, packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
-| [UI-001](./specs/ui/UI-001.md) | Frontend | - | - | ⏳ 대기 |
+| [UI-001](./specs/ui/UI-001.md) | Frontend | - | - | 🚧 진행중 |
 | [API-001](./specs/api/API-001.md) | API | packages/backend/src/execution/execution.controller.ts | packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
 | [API-002](./specs/api/API-002.md) | API | packages/backend/src/execution/execution.controller.ts | packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
 | [API-004](./specs/api/API-004.md) | API | packages/backend/src/execution/execution.controller.ts | packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
@@ -72,7 +72,7 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 연관 Backend |
 |---------|----------|----------|------------|------|-------------|
-| [UI-001](./specs/ui/UI-001.md) | Execution Management UI | - | - | ⏳ 대기 | FEAT-002, API-001/002/004 |
+| [UI-001](./specs/ui/UI-001.md) | Execution Management UI | - | - | 🚧 진행중 | FEAT-002, API-001/002/004, TASK-001 |
 | [UI-002](./specs/ui/UI-002.md) | History & Statistics UI | - | - | ⏳ 대기 | FEAT-003, API-003 |
 | [UI-003](./specs/ui/UI-003.md) | Artifact Management UI | - | - | ⏳ 대기 | FEAT-004, API-005 |
 | [UI-004](./specs/ui/UI-004.md) | Common Layout & Auth UI | packages/frontend/src/components/layout/*, packages/frontend/src/components/auth/*, packages/frontend/src/components/ui/*, packages/frontend/src/components/feedback/*, packages/frontend/src/contexts/*, packages/frontend/src/hooks/*, packages/frontend/src/lib/*, packages/frontend/src/app/login/*, packages/frontend/src/app/dashboard/*, packages/frontend/src/app/settings/* | packages/frontend/src/__tests__/* | ✅ 완료 | FEAT-001 |
@@ -146,11 +146,11 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 | 카테고리 | 전체 | 완료 | 진행중 | 대기 | 완료율 |
 |---------|-----|-----|-------|-----|--------|
 | FEAT | 4 | 2 | 0 | 2 | 50% |
-| UI | 4 | 1 | 0 | 3 | 25% |
+| UI | 4 | 1 | 1 | 2 | 25% |
 | API | 5 | 4 | 0 | 1 | 80% |
 | DATA | 1 | 1 | 0 | 0 | 100% |
 | INFRA | 1 | 1 | 0 | 0 | 100% |
-| **총계** | **15** | **9** | **0** | **6** | **60%** |
+| **총계** | **15** | **9** | **1** | **5** | **60%** |
 
 ---
 
@@ -239,3 +239,4 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 | 2025-12-31 | INFRA-001, FEAT-002 | E2E 테스트에 K8s 통합 추가: Kind 클러스터 및 LocalStack 구성, test.fixme를 활성화된 K8s 라이프사이클 테스트로 변경 | Claude |
 | 2025-12-31 | US-001~014 | Phase 1 사용자 스토리 작성 (FEAT-001, DATA-001, INFRA-001, UI-004 기반 14개 스토리) | Claude |
 | 2025-12-31 | US-015 | 회원 가입 사용자 스토리 추가 | Claude |
+| 2026-01-02 | UI-001 | 작업 계획 시작: TASK-001 (Execution API 클라이언트 및 Hooks) 생성 | Claude |
