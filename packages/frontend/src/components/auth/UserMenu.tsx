@@ -67,6 +67,7 @@ export function UserMenu() {
         className="flex items-center gap-2 rounded-full p-1 hover:bg-secondary"
         aria-expanded={isOpen}
         aria-haspopup="true"
+        data-testid="user-menu"
       >
         <Avatar
           src={user.avatar}

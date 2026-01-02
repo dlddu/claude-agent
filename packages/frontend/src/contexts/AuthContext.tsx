@@ -10,8 +10,10 @@ import {
   User,
   LoginCredentials,
   ApiKeyCredentials,
+  RegisterCredentials,
   login as authLogin,
   loginWithApiKey as authLoginWithApiKey,
+  register as authRegister,
   logout as authLogout,
   getCurrentUser,
 } from '@/lib/auth';
@@ -26,6 +28,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   loginWithApiKey: (credentials: ApiKeyCredentials) => Promise<void>;
+  register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -83,6 +86,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
+   * Register new user
+   * @spec US-015
+   */
+  const register = useCallback(async (credentials: RegisterCredentials) => {
+    const response = await authRegister(credentials);
+    setUser(response.user);
+  }, []);
+
+  /**
    * Logout
    */
   const logout = useCallback(async () => {
@@ -109,6 +121,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoading,
     login,
     loginWithApiKey,
+    register,
     logout,
     refreshUser,
   };
