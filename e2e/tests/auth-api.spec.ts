@@ -322,7 +322,7 @@ test.describe('Auth API E2E', () => {
         },
       });
 
-      expect(response.status()).toBe(500); // Error thrown
+      expect(response.status()).toBe(400); // Validation error
       const body = await response.json();
       expect(body.message).toContain('Email already registered');
     });
@@ -340,7 +340,7 @@ test.describe('Auth API E2E', () => {
         },
       });
 
-      expect(response.status()).toBe(500);
+      expect(response.status()).toBe(400);
       const body = await response.json();
       expect(body.message).toContain('Passwords do not match');
     });
@@ -358,7 +358,7 @@ test.describe('Auth API E2E', () => {
         },
       });
 
-      expect(response.status()).toBe(500);
+      expect(response.status()).toBe(400);
       const body = await response.json();
       expect(body.message).toContain('Password must be at least 8 characters');
     });
@@ -376,7 +376,7 @@ test.describe('Auth API E2E', () => {
         },
       });
 
-      expect(response.status()).toBe(500);
+      expect(response.status()).toBe(400);
       const body = await response.json();
       expect(body.message).toContain(
         'Password must contain at least one uppercase letter',
@@ -396,7 +396,7 @@ test.describe('Auth API E2E', () => {
         },
       });
 
-      expect(response.status()).toBe(500);
+      expect(response.status()).toBe(400);
       const body = await response.json();
       expect(body.message).toContain(
         'Password must contain at least one special character',
@@ -416,7 +416,7 @@ test.describe('Auth API E2E', () => {
         },
       });
 
-      expect(response.status()).toBe(500);
+      expect(response.status()).toBe(400);
       const body = await response.json();
       expect(body.message).toContain(
         'You must agree to the terms and conditions',
