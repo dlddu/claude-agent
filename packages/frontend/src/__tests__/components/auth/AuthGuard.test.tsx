@@ -33,6 +33,7 @@ describe('AuthGuard', () => {
       login: jest.fn(),
       loginWithApiKey: jest.fn(),
       logout: jest.fn(),
+      register: jest.fn(),
       refreshUser: jest.fn(),
     });
 
@@ -54,6 +55,7 @@ describe('AuthGuard', () => {
       login: jest.fn(),
       loginWithApiKey: jest.fn(),
       logout: jest.fn(),
+      register: jest.fn(),
       refreshUser: jest.fn(),
     });
 
@@ -76,6 +78,7 @@ describe('AuthGuard', () => {
       login: jest.fn(),
       loginWithApiKey: jest.fn(),
       logout: jest.fn(),
+      register: jest.fn(),
       refreshUser: jest.fn(),
     });
 
@@ -102,6 +105,7 @@ describe('GuestGuard', () => {
       login: jest.fn(),
       loginWithApiKey: jest.fn(),
       logout: jest.fn(),
+      register: jest.fn(),
       refreshUser: jest.fn(),
     });
 
@@ -122,6 +126,7 @@ describe('GuestGuard', () => {
       login: jest.fn(),
       loginWithApiKey: jest.fn(),
       logout: jest.fn(),
+      register: jest.fn(),
       refreshUser: jest.fn(),
     });
 
@@ -144,6 +149,7 @@ describe('GuestGuard', () => {
       login: jest.fn(),
       loginWithApiKey: jest.fn(),
       logout: jest.fn(),
+      register: jest.fn(),
       refreshUser: jest.fn(),
     });
 

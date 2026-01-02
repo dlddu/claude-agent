@@ -3,7 +3,12 @@
  * @spec FEAT-001 REQ-4
  */
 
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -240,19 +245,27 @@ export class AuthService {
    */
   validatePasswordStrength(password: string): void {
     if (password.length < 8) {
-      throw new Error('Password must be at least 8 characters');
+      throw new BadRequestException('Password must be at least 8 characters');
     }
     if (!/[A-Z]/.test(password)) {
-      throw new Error('Password must contain at least one uppercase letter');
+      throw new BadRequestException(
+        'Password must contain at least one uppercase letter',
+      );
     }
     if (!/[a-z]/.test(password)) {
-      throw new Error('Password must contain at least one lowercase letter');
+      throw new BadRequestException(
+        'Password must contain at least one lowercase letter',
+      );
     }
     if (!/[0-9]/.test(password)) {
-      throw new Error('Password must contain at least one number');
+      throw new BadRequestException(
+        'Password must contain at least one number',
+      );
     }
     if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
-      throw new Error('Password must contain at least one special character');
+      throw new BadRequestException(
+        'Password must contain at least one special character',
+      );
     }
   }
 
@@ -263,12 +276,14 @@ export class AuthService {
   async register(dto: RegisterDto): Promise<RegisterResponse> {
     // Validate terms agreement
     if (!dto.agreeToTerms) {
-      throw new Error('You must agree to the terms and conditions');
+      throw new BadRequestException(
+        'You must agree to the terms and conditions',
+      );
     }
 
     // Validate password match
     if (dto.password !== dto.passwordConfirm) {
-      throw new Error('Passwords do not match');
+      throw new BadRequestException('Passwords do not match');
     }
 
     // Validate password strength
@@ -279,7 +294,7 @@ export class AuthService {
       this.logger.warn(
         `Registration attempt with existing email: ${dto.email}`,
       );
-      throw new Error('Email already registered');
+      throw new BadRequestException('Email already registered');
     }
 
     // Hash password
