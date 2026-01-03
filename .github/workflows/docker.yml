@@ -17,11 +17,11 @@ env:
   IMAGE_PREFIX: ${{ github.repository }}
 
 jobs:
-  # Job 1: Build and push backend image (Multi-platform: amd64 + arm64)
+  # Job 1: Build and push backend image (arm64 only)
   # @spec INFRA-001 REQ-6
   build-backend:
     name: Build Backend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 45
     permissions:
       contents: read
@@ -31,15 +31,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # REQ-6: QEMU for cross-platform build
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -58,14 +53,14 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=
 
-      # REQ-6: Multi-platform build (linux/amd64, linux/arm64)
+      # REQ-6: arm64 build
       - name: Build and push backend
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./packages/backend/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          platforms: linux/arm64
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=backend
@@ -73,11 +68,11 @@ jobs:
           build-args: |
             NODE_ENV=production
 
-  # Job 2: Build and push frontend image (Multi-platform: amd64 + arm64)
+  # Job 2: Build and push frontend image (arm64 only)
   # @spec INFRA-001 REQ-6
   build-frontend:
     name: Build Frontend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 45
     permissions:
       contents: read
@@ -87,15 +82,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # REQ-6: QEMU for cross-platform build
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -114,14 +104,14 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=
 
-      # REQ-6: Multi-platform build (linux/amd64, linux/arm64)
+      # REQ-6: arm64 build
       - name: Build and push frontend
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./packages/frontend/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          platforms: linux/arm64
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=frontend
@@ -134,9 +124,8 @@ jobs:
   # @spec INFRA-001 REQ-3
   security-scan:
     name: Security Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     needs: [build-backend, build-frontend]
-    if: github.event_name != 'pull_request'
     timeout-minutes: 15
     permissions:
       contents: read
@@ -159,6 +148,8 @@ jobs:
 
       - name: Run Trivy vulnerability scanner (backend)
         uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_PLATFORM: linux/arm64
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:${{ steps.sha.outputs.short }}
           format: 'table'
@@ -166,6 +157,8 @@ jobs:
 
       - name: Run Trivy vulnerability scanner (frontend)
         uses: aquasecurity/trivy-action@master
+        env:
+          TRIVY_PLATFORM: linux/arm64
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend:${{ steps.sha.outputs.short }}
           format: 'table'
