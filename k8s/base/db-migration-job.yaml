@@ -1,0 +1,48 @@
+# Database Migration Job
+# @spec INFRA-001
+# 배포 전 수동으로 실행하거나 CI/CD 파이프라인에서 실행
+# Usage: kubectl apply -f db-migration-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate
+  namespace: claude-agent
+  labels:
+    app.kubernetes.io/name: claude-agent
+    app.kubernetes.io/component: db-migration
+spec:
+  ttlSecondsAfterFinished: 300  # 완료 후 5분 뒤 자동 삭제
+  backoffLimit: 3  # 최대 3회 재시도
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: claude-agent
+        app.kubernetes.io/component: db-migration
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: ghcr.io/claude-agent/backend:main
+          imagePullPolicy: Always
+          command:
+            - npx
+            - prisma
+            - migrate
+            - deploy
+          envFrom:
+            - configMapRef:
+                name: claude-agent-config
+            - secretRef:
+                name: claude-agent-secret
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true

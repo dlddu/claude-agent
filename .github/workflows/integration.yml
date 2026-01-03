@@ -75,7 +75,7 @@ jobs:
 
       - name: Run Prisma migrations
         working-directory: packages/backend
-        run: pnpm db:push
+        run: pnpm prisma:migrate:deploy
 
       - name: Verify database schema
         env:
@@ -185,7 +185,7 @@ jobs:
 
       - name: Setup database
         working-directory: packages/backend
-        run: pnpm db:push
+        run: pnpm prisma:migrate:deploy
 
       - name: Build packages
         run: pnpm build
@@ -334,7 +334,7 @@ jobs:
 
       - name: Setup database
         working-directory: packages/backend
-        run: pnpm db:push
+        run: pnpm prisma:migrate:deploy
 
       - name: Build all packages
         run: pnpm build

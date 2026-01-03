@@ -75,6 +75,9 @@ COPY --from=builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=builder /app/packages/backend/dist ./packages/backend/dist
 COPY --from=builder /app/packages/backend/package.json ./packages/backend/
 
+# Copy Prisma schema and migrations for migrate deploy
+COPY --from=builder /app/packages/backend/prisma ./packages/backend/prisma
+
 # Copy package.json for workspace resolution
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-workspace.yaml ./
