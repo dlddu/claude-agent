@@ -128,7 +128,6 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-24.04-arm
     needs: [build-backend, build-frontend]
-    if: github.event_name != 'pull_request'
     timeout-minutes: 15
     permissions:
       contents: read
