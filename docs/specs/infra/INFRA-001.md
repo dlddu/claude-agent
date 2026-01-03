@@ -65,7 +65,7 @@ Claude Agent Service 프로젝트의 GitHub Actions 기반 CI/CD 파이프라인
 - [x] 이미지 태깅 전략 (semver, sha, latest)
 
 ### REQ-6: ARM64 Native Docker Build
-- [x] ARM64 네이티브 러너 사용 (ubuntu-24.04-arm64)
+- [x] ARM64 네이티브 러너 사용 (ubuntu-24.04-arm)
 - [x] 단일 플랫폼 빌드 (linux/arm64)
 - [x] Buildx를 통한 빌드 최적화
 
@@ -182,7 +182,7 @@ tags: |
   type=sha
 ```
 
-**Jobs (ubuntu-24.04-arm64):**
+**Jobs (ubuntu-24.04-arm):**
 
 | Job | Description | Output |
 |-----|-------------|--------|
@@ -200,7 +200,7 @@ build-args: |
 **ARM64 Native Build Configuration:**
 ```yaml
 # REQ-6: ARM64 Native Build
-runs-on: ubuntu-24.04-arm64
+runs-on: ubuntu-24.04-arm
 platforms: linux/arm64
 
 # Buildx setup (QEMU not needed for native arm64)
@@ -387,7 +387,7 @@ jobs:
 
 ## Constraints
 
-- GitHub-hosted runner 사용 (CI: ubuntu-latest, Docker: ubuntu-24.04-arm64)
+- GitHub-hosted runner 사용 (CI: ubuntu-latest, Docker: ubuntu-24.04-arm)
 - GHCR (GitHub Container Registry) 사용
 - Concurrency 설정으로 중복 워크플로우 방지
 - 타임아웃: CI 20분, Integration 30분, Docker 45분
