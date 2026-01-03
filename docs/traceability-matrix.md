@@ -34,7 +34,7 @@
 | Spec | Type | 구현 파일 | 테스트 파일 | 상태 |
 |------|------|----------|------------|------|
 | [FEAT-002](./specs/features/FEAT-002.md) | Backend | packages/backend/src/execution/*.ts, packages/backend/src/prisma/*.ts | packages/backend/src/execution/execution.service.spec.ts, packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
-| [UI-001](./specs/ui/UI-001.md) | Frontend | - | - | 🚧 진행중 |
+| [UI-001](./specs/ui/UI-001.md) | Frontend | packages/frontend/src/app/executions/*, packages/frontend/src/hooks/executions/*, packages/frontend/src/services/executionApi.ts | - | 🚧 진행중 |
 | [API-001](./specs/api/API-001.md) | API | packages/backend/src/execution/execution.controller.ts | packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
 | [API-002](./specs/api/API-002.md) | API | packages/backend/src/execution/execution.controller.ts | packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
 | [API-004](./specs/api/API-004.md) | API | packages/backend/src/execution/execution.controller.ts | packages/backend/test/execution.integration.spec.ts, e2e/tests/execution-api.spec.ts | ✅ 완료 |
@@ -72,7 +72,7 @@
 
 | Spec ID | 명세 제목 | 구현 파일 | 테스트 파일 | 상태 | 연관 Backend |
 |---------|----------|----------|------------|------|-------------|
-| [UI-001](./specs/ui/UI-001.md) | Execution Management UI | - | - | 🚧 진행중 | FEAT-002, API-001/002/004 |
+| [UI-001](./specs/ui/UI-001.md) | Execution Management UI | packages/frontend/src/app/executions/*, packages/frontend/src/hooks/executions/*, packages/frontend/src/services/executionApi.ts | - | 🚧 진행중 | FEAT-002, API-001/002/004 |
 | [UI-002](./specs/ui/UI-002.md) | History & Statistics UI | - | - | ⏳ 대기 | FEAT-003, API-003 |
 | [UI-003](./specs/ui/UI-003.md) | Artifact Management UI | - | - | ⏳ 대기 | FEAT-004, API-005 |
 | [UI-004](./specs/ui/UI-004.md) | Common Layout & Auth UI | packages/frontend/src/components/layout/*, packages/frontend/src/components/auth/*, packages/frontend/src/components/ui/*, packages/frontend/src/components/feedback/*, packages/frontend/src/contexts/*, packages/frontend/src/hooks/*, packages/frontend/src/lib/*, packages/frontend/src/app/login/*, packages/frontend/src/app/dashboard/*, packages/frontend/src/app/settings/* | packages/frontend/src/__tests__/* | ✅ 완료 | FEAT-001 |
@@ -216,13 +216,13 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 
 | Task ID | 작업명 | 크기 | 상태 | 관련 REQ |
 |---------|-------|------|------|----------|
-| [TASK-003](./tasks/TASK-003-UI001-기본구조.md) | UI-001 기본 구조 및 API 클라이언트 | S | 계획됨 | REQ-1~5 공통 |
+| [TASK-003](./tasks/TASK-003-UI001-기본구조.md) | UI-001 기본 구조 및 API 클라이언트 | S | ✅ 완료 | REQ-1~5 공통 |
 | [TASK-004](./tasks/TASK-004-UI001-실행생성폼.md) | 실행 생성 폼 구현 | M | 계획됨 | REQ-1 |
 | [TASK-005](./tasks/TASK-005-UI001-실행목록.md) | 실행 목록 페이지 구현 | M | 계획됨 | REQ-2, REQ-4 |
 | [TASK-006](./tasks/TASK-006-UI001-실행상세.md) | 실행 상세 페이지 구현 | M | 계획됨 | REQ-3 |
 | [TASK-007](./tasks/TASK-007-UI001-실시간업데이트.md) | 실시간 업데이트 구현 | M | 계획됨 | REQ-5 |
 
-**다음 작업**: TASK-003 (UI-001 기본 구조 및 API 클라이언트)
+**다음 작업**: TASK-004 (실행 생성 폼 구현)
 
 ---
 
@@ -256,3 +256,4 @@ FEAT-001 (System Architecture) + UI-004 (Common Layout)
 | 2025-12-31 | US-001~014 | Phase 1 사용자 스토리 작성 (FEAT-001, DATA-001, INFRA-001, UI-004 기반 14개 스토리) | Claude |
 | 2025-12-31 | US-015 | 회원 가입 사용자 스토리 추가 | Claude |
 | 2026-01-03 | UI-001 | 작업 계획 수립: TASK-003~007 생성, UI-001 상태를 🚧 진행중으로 변경 | Claude |
+| 2026-01-03 | TASK-003 | TASK-003 구현 완료: API 클라이언트, React Query 훅, 라우트 페이지 (스켈레톤) | Claude |
