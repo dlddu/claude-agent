@@ -5,13 +5,17 @@
 
 'use client';
 
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ExecutionForm } from '@/components/executions/ExecutionForm';
 
 export default function NewExecutionPage() {
+  const router = useRouter();
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -31,13 +35,11 @@ export default function NewExecutionPage() {
           </div>
         </div>
 
-        {/* Content */}
+        {/* Form */}
         <Card className="p-6">
-          <div className="border rounded-lg p-8 bg-muted/50">
-            <p className="text-sm text-muted-foreground text-center">
-              Execution form component coming in TASK-004
-            </p>
-          </div>
+          <ExecutionForm
+            onCancel={() => router.push('/executions')}
+          />
         </Card>
       </div>
     </MainLayout>
