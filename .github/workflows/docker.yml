@@ -21,7 +21,7 @@ jobs:
   # @spec INFRA-001 REQ-6
   build-backend:
     name: Build Backend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 45
     permissions:
       contents: read
@@ -30,10 +30,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # REQ-6: QEMU for cross-platform build
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -77,7 +73,7 @@ jobs:
   # @spec INFRA-001 REQ-6
   build-frontend:
     name: Build Frontend
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 45
     permissions:
       contents: read
@@ -86,10 +82,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # REQ-6: QEMU for cross-platform build
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -134,7 +126,7 @@ jobs:
   # @spec INFRA-001 REQ-3
   security-scan:
     name: Security Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     needs: [build-backend, build-frontend]
     if: github.event_name != 'pull_request'
     timeout-minutes: 15
