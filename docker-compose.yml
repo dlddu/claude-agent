@@ -1,0 +1,60 @@
+# Docker Compose for Claude Agent
+# Includes database, migration job, and backend service
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-claude}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-claude_password}
+      POSTGRES_DB: ${POSTGRES_DB:-claude_agent}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-claude} -d ${POSTGRES_DB:-claude_agent}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Migration Job - runs before backend starts
+  migration:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+      target: migrator
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-claude}:${POSTGRES_PASSWORD:-claude_password}@db:5432/${POSTGRES_DB:-claude_agent}?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+      target: runner
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-claude}:${POSTGRES_PASSWORD:-claude_password}@db:5432/${POSTGRES_DB:-claude_agent}?schema=public
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres_data:

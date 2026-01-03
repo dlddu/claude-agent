@@ -48,7 +48,31 @@ RUN pnpm --filter @claude-agent/shared build
 RUN pnpm --filter @claude-agent/backend build
 
 # ============================================
-# Stage 3: Production Runner
+# Stage 3: Migration Runner
+# ============================================
+FROM node:20-alpine AS migrator
+
+RUN apk add --no-cache dumb-init
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Copy node_modules (includes Prisma CLI and generated client)
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/backend/node_modules ./packages/backend/node_modules
+
+# Copy Prisma schema and migrations
+COPY --from=builder /app/packages/backend/prisma ./packages/backend/prisma
+COPY --from=builder /app/packages/backend/package.json ./packages/backend/
+
+WORKDIR /app/packages/backend
+
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["npx", "prisma", "migrate", "deploy"]
+
+# ============================================
+# Stage 4: Production Runner
 # ============================================
 FROM node:20-alpine AS runner
 
